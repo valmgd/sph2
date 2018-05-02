@@ -1,4 +1,12 @@
 ! ===========================================================================================================
+! Code pour évaluation de la tension de surface et tests sur schéma SPH sur une initialisation
+! (pas d'itérations en temps)
+!
+! Prévu pour fonctionner en 2D ou 3D
+! Pour cela changer la constante d. Les autres variables avec exposant sont des constantes qui dépendent
+! de la dimension. Elles sont ainsi calculées une seule fois. L'astuce est la suivante :
+!
+! a**(3-d) * b**(d-2) = {a si d == 2, b si d == 3}
 ! ===========================================================================================================
 
 MODULE sph
@@ -6,6 +14,12 @@ MODULE sph
     use math
 
     implicit none
+
+    integer, parameter  :: d = 2
+
+    real(rp), parameter :: C_SPH         =              7.0_rp**(3-d) *            14.0_rp**(d-2)
+    real(rp), parameter :: V_SPH         =                  pi**(3-d) * (4.0_rp*pi/3.0_rp)**(d-2)
+    real(rp), parameter :: C_norm_akinci = (417.0_rp/370.0_rp)**(3-d) *             1.0_rp**(d-2)
 
 contains
 
@@ -31,50 +45,6 @@ contains
                 k = k + 1
             end do
         end do
-    end subroutine
-
-
-
-    ! -------------------------------------------------------------------------------------------------------
-    ! Maille un disque (plus grand disque centré inclu dans x1 * x2)
-    ! -------------------------------------------------------------------------------------------------------
-    ! x1 : subdivision abscisse
-    ! x2 : subdivision ordonées
-    ! x : données du maillage retourné
-    ! rayonBulle : rayon du disque
-    subroutine meshgridCircle(x1, x2, x, rayonBulle, centreBulle)
-        ! paramètres
-        real(rp), dimension(:), intent(in) :: x1, x2
-        real(rp), dimension(:, :), allocatable, intent(out) :: x
-        real(rp), intent(out) :: rayonBulle
-        real(rp), dimension(2), intent(out) :: centreBulle
-
-        ! variables locales
-        integer :: i, j, k
-        real(rp), dimension(size(x1) * size(x2), 2) :: xtemp
-        real(rp), dimension(2) :: temp
-        real(rp) :: delta
-
-        delta = (x1(2) - x1(1)) / 2.0_rp
-
-        centreBulle = (/ (x1(size(x1)) - x1(1)) / 2.0_rp, (x2(size(x2)) - x2(1)) / 2.0_rp /)
-        rayonBulle = maxval(centreBulle) + delta
-        centreBulle = centreBulle + (/ x1(1), x2(1) /)
-
-        k = 0
-
-        do i = 1, size(x1)
-            do j = 1, size(x2)
-                temp = (/ x1(i), x2(j) /)
-                if (fnorme2(temp - centreBulle) <= rayonBulle - delta) then
-                    k = k + 1
-                    xtemp(k, :) = temp
-                end if
-            end do
-        end do
-
-        allocate(x(k, 2))
-        x = xtemp(1:k, :)
     end subroutine
 
 
@@ -135,13 +105,8 @@ contains
         ! return
         real(rp) :: theta
 
-        ! variables locales
-        real(rp) :: C
-
-        C = 7.0_rp
-
         if ((0.0_rp <= q) .and. (q <= 1.0_rp)) then
-            theta = C * (1.0_rp - q)**4 * (1.0_rp + 4.0_rp*q)
+            theta = C_SPH * (1.0_rp - q)**4 * (1.0_rp + 4.0_rp*q)
         else
             theta = 0.0_rp
         end if
@@ -157,7 +122,7 @@ contains
     ! W : résultat (réel)
     function W_SPH(x, R) result(W)
         ! paramètres
-        real(rp), dimension(2), intent(in) :: x
+        real(rp), dimension(d), intent(in) :: x
         real(rp), intent(in) :: R
 
         ! return
@@ -168,7 +133,7 @@ contains
 
         call norme2(x, norm)
         if (norm <= R) then
-            W = theta(norm / R) / (pi * R**2)
+            W = theta(norm / R) / (V_SPH * R**d)
         else
             W = 0.0_rp
         end if
@@ -184,9 +149,9 @@ contains
     ! grad : résultat (R**2)
     subroutine dx_W_SPH(z, R, grad)
         ! paramètres
-        real(rp), dimension(2), intent(in) :: z
+        real(rp), dimension(d), intent(in) :: z
         real(rp), intent(in) :: R
-        real(rp), dimension(2), intent(out) :: grad
+        real(rp), dimension(d), intent(out) :: grad
 
         ! variables locales
         !real(rp) :: u, v
@@ -198,9 +163,9 @@ contains
 
         if (norm <= R) then
             q = norm / R
-            grad = (7.0_rp / (pi * R**2)) * (-20.0_rp / R) * (z / norm) * q * (1-q)**3
+            grad = (C_SPH / (V_SPH * R**d)) * (-20.0_rp / R) * (z / norm) * q * (1-q)**3
         else
-            grad = (/ 0.0_rp, 0.0_rp /)
+            grad = 0.0_rp
         end if
     end subroutine
 
@@ -255,11 +220,11 @@ contains
         real(rp), dimension(:), intent(in) :: w
         real(rp), intent(in) :: R
         real(rp), dimension(:), intent(in) :: f
-        real(rp), dimension(2), intent(out) :: image
+        real(rp), dimension(d), intent(out) :: image
 
         ! variables locales
         integer :: j
-        real(rp), dimension(2) :: grad
+        real(rp), dimension(d) :: grad
 
         image = 0.0_rp
 
@@ -291,11 +256,11 @@ contains
         real(rp), dimension(:), intent(in) :: w
         real(rp), intent(in) :: R
         real(rp), dimension(:), intent(in) :: f
-        real(rp), dimension(2), intent(out) :: image
+        real(rp), dimension(d), intent(out) :: image
 
         ! variables locales
         integer :: j
-        real(rp), dimension(2) :: grad
+        real(rp), dimension(d) :: grad
 
         image = 0.0_rp
 
@@ -327,11 +292,11 @@ contains
         real(rp), dimension(:), intent(in) :: w
         real(rp), intent(in) :: R
         real(rp), dimension(:), intent(in) :: f
-        real(rp), dimension(2), intent(out) :: image
+        real(rp), dimension(d), intent(out) :: image
 
         ! variables locales
         integer :: j
-        real(rp), dimension(2) :: grad
+        real(rp), dimension(d) :: grad
 
         image = 0.0_rp
 
@@ -369,31 +334,16 @@ contains
         real(RP), save :: C_norm = 417.0_rp / 370.0_rp
         integer :: d
 
-        ! dimension
-        !D = 2
-        !q = r/R_SPH
-
-        !kernel_TS = 0._rp
-        !if ((2._rp*q>1._rp).and.(q<=1._RP)) then
-        !    kernel_TS = (1._rp-q)**3._rp*q**3._rp
-        !elseif ((q>0._rp).and.(2._rp*q<=1._rp)) then
-        !    kernel_TS = 2._rp*(1._rp-q)**3._rp*q**3._rp - 1._rp/64._rp
-        !endif
-        !kernel_TS = TSkernorm*32._RP/(PI*R_SPH**real(D, rp))*kernel_TS
-
-        !if ((0.0_rp < r) .and. (r <= R_SPH / 2.0_rp)) then
-        !    C = (32.0_rp / (pi * R_SPH**9)) * (2.0_rp * (R_SPH - r)**3 * r**3 - R_SPH**6 / 64.0_rp)
-        !else if ((R_SPH / 2.0_rp < r) .and. (r <= R_SPH)) then
-        !    C = (32.0_rp / (pi * R_SPH**9)) * (R_SPH - r)**3 * r**3
-        !else
-        !    C = 0.0_rp
-        !end if
-
         d = 2
+
         if ((0.0_rp < r) .and. (r <= R_SPH / 2.0_rp)) then
-            C = C_norm * (32.0_rp / (pi * R_SPH**d * R_SPH**6)) * (2.0_rp * (R_SPH - r)**3 * r**3 - R_SPH**6 / 64.0_rp)
+            C = C_norm * (32.0_rp / (pi * R_SPH**d * R_SPH**6)) * &
+                (2.0_rp * (R_SPH - r)**3 * r**3 - R_SPH**6 / 64.0_rp)
+
         else if ((R_SPH / 2.0_rp < r) .and. (r <= R_SPH)) then
-            C = C_norm * (32.0_rp / (pi * R_SPH**d * R_SPH**6)) * (R_SPH - r)**3 * r**3
+            C = C_norm * (32.0_rp / (pi * R_SPH**d * R_SPH**6)) * &
+                (R_SPH - r)**3 * r**3
+
         else
             C = 0.0_rp
         end if
@@ -413,11 +363,11 @@ contains
         real(rp), intent(in) :: R_SPH
         real(rp), dimension(:, :), intent(in) :: x
         real(rp), dimension(:), intent(in) :: w
-        real(rp), dimension(size(w), 2), intent(out) :: n
+        real(rp), dimension(size(w), d), intent(out) :: n
 
         ! variables locales
         integer :: i, j, k
-        real(rp), dimension(2) :: ni, grad
+        real(rp), dimension(d) :: ni, grad
 
         do i = 1, size(w)
             ni = 0.0_rp
@@ -458,10 +408,10 @@ contains
         real(rp), dimension(:), intent(in) :: w
         real(rp), dimension(:, :), intent(in) :: n
         real(rp), intent(in) :: R_SPH
-        real(rp), dimension(2), intent(out) :: F
+        real(rp), dimension(d), intent(out) :: F
 
         ! variables locales
-        real(rp), dimension(2) :: ni, nj
+        real(rp), dimension(d) :: ni, nj
         integer :: k, np, j
 
         np = size(w)
@@ -490,7 +440,7 @@ contains
     ! -------------------------------------------------------------------------------------------------------
     function C_Kordilla(x, R) result(W)
         ! paramètres
-        real(rp), dimension(2), intent(in) :: x
+        real(rp), dimension(d), intent(in) :: x
         real(rp), intent(in) :: R
 
         ! return
@@ -527,11 +477,11 @@ contains
         real(rp), intent(in) :: y, R_SPH
         integer, intent(in) :: i, j
         real(rp), dimension(:, :), intent(in) :: x
-        real(rp), dimension(2), intent(out) :: F
+        real(rp), dimension(d), intent(out) :: F
 
         ! variables locales
         real(rp) :: s_ff, A, B, h1, h2
-        real(rp), dimension(2) :: r
+        real(rp), dimension(d) :: r
         real(rp) :: length
 
         A = 2.0_rp
@@ -579,7 +529,7 @@ contains
         real(rp), dimension(:, :), intent(in) :: x
         real(rp), dimension(:), intent(in) :: w
         real(rp), intent(in) :: R_SPH
-        real(rp), dimension(2), intent(out) :: F
+        real(rp), dimension(d), intent(out) :: F
 
         ! variables locales
         integer :: k, np, j
