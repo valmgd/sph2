@@ -5,7 +5,7 @@
 PROJECT = sph
 
 #
-SOURCES = main.f95 sph.f95 donnees.f95 math.f95
+SOURCES = main.f95 donnees.f95 sph.f95 math.f95
 
 OBJ_DIR = ../objets
 RUN_DIR = ../run
@@ -44,11 +44,11 @@ $(OBJ_DIR)/main.o : main.f95 \
 $(OBJ_DIR)/math.o $(OBJ_DIR)/math.mod : math.f95
 	$(FC) $(FLAGS) -c math.f95 -o $(OBJ_DIR)/math.o
 
-$(OBJ_DIR)/donnees.o $(OBJ_DIR)/donnees.mod : donnees.f95 $(OBJ_DIR)/math.mod
-	$(FC) $(FLAGS) -c donnees.f95 -o $(OBJ_DIR)/donnees.o
-
 $(OBJ_DIR)/sph.o $(OBJ_DIR)/sph.mod : sph.f95 $(OBJ_DIR)/math.mod
 	$(FC) $(FLAGS) -c sph.f95 -o $(OBJ_DIR)/sph.o
+
+$(OBJ_DIR)/donnees.o $(OBJ_DIR)/donnees.mod : donnees.f95 $(OBJ_DIR)/math.mod $(OBJ_DIR)/sph.mod
+	$(FC) $(FLAGS) -c donnees.f95 -o $(OBJ_DIR)/donnees.o
 
 
 

@@ -4,6 +4,7 @@
 MODULE donnees
 
     use math
+    use sph
 
     implicit none
 
@@ -47,6 +48,42 @@ contains
         do i = 1, np
             P(i) = pression(x(i, :), centreBulle, rayonBulle)
         end do
+    end subroutine
+
+    subroutine cube(d_Omega, n, xmin, xmax, nom_fichier, x, w)
+        ! paramètres
+        integer, intent(in) :: d_Omega, n
+        real(rp), intent(in) :: xmax, xmin
+        character(len=*), intent(in) :: nom_fichier
+        real(rp), dimension(:, :), allocatable, intent(out) :: x
+        real(rp), dimension(:), allocatable, intent(out) :: w
+
+        ! variables locales
+        real(rp), dimension(:, :), allocatable :: subd_axes
+        integer :: i, np
+        real(rp) :: dx
+
+        dx = (xmax - xmin) / n
+        allocate(subd_axes(n, d_Omega))
+        do i = 1, d_Omega
+            subd_axes(:, i) = linspace(xmin + dx/2.0_rp, xmax - dx/2.0_rp, n)
+        end do
+
+        call meshgrid(subd_axes, x)
+        deallocate(subd_axes)
+
+        np = size(x, 1)
+        allocate(w(np))
+        w = dx
+
+        call writeMat(x, nom_fichier // "_points.dat")
+        open(unit = 10, file = nom_fichier // "_enveloppe.dat")
+        write (10, *) xmin, xmin
+        write (10, *) xmax, xmin
+        write (10, *) xmax, xmax
+        write (10, *) xmin, xmax
+        write (10, *) xmin, xmin
+        close(10)
     end subroutine
 
 END MODULE donnees

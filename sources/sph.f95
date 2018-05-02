@@ -24,25 +24,39 @@ MODULE sph
 contains
 
     ! -------------------------------------------------------------------------------------------------------
-    ! créer un quadrillage à partir d'une subdivision de x et de y
+    ! créer un quadrillage à partir d'une subdivision de x1, de x2 et éventuellement de x3
     ! -------------------------------------------------------------------------------------------------------
-    ! x1 : subdivision des abcisse
-    ! x2 : subdivision des ordonnées
-    subroutine meshgrid(x1, x2, x)
+    ! xyz : 2 ou 3 subdivisions de chacun des 2 ou 3 axes d'espace (en colonne)
+    ! x : maillage 2 ou 3D retourné
+    subroutine meshgrid(xyz, x)
         ! paramètres
-        real(rp), dimension(:), intent(in) :: x1, x2
+        real(rp), dimension(:, :), intent(in) :: xyz
         real(rp), dimension(:, :), allocatable, intent(out) :: x
 
         ! variables locales
-        integer :: i, j, k
+        integer :: i, j
+        integer :: d_dom, length, N
+        integer, dimension(:), allocatable :: indice
 
-        allocate(x(size(x1) * size(x2), 2))
-        k = 1
+        length = size(xyz, 1)
+        d_dom = size(xyz, 2)
+        N = length**d_dom
 
-        do i = 1, size(x1)
-            do j = 1, size(x2)
-                x(k, :) = (/ x1(i), x2(j) /)
-                k = k + 1
+        allocate(indice(d_dom), x(N, d_dom))
+        indice = 1
+
+        do i = 1, N
+            do j = 1, d_dom
+                x(i, j) = xyz(indice(j), j)
+            end do
+
+            do j = d_dom, 1, -1
+                if (indice(j) < length) then
+                    indice(j) = indice(j) + 1
+                    exit
+                else
+                    indice(j) = 1
+                end if
             end do
         end do
     end subroutine
