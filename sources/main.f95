@@ -12,9 +12,9 @@ PROGRAM main
 
     implicit none
 
-    character(len=4), parameter :: scenario_a = "cube"
-    character(len=4), parameter :: scenario_b = "rond"
-    character(len=4), parameter :: choix = scenario_b
+    character(len=5), parameter :: scenario_a = "pave "
+    character(len=5), parameter :: scenario_b = "bulle"
+    character(len=5), parameter :: choix = scenario_b
 
     ! nombre de points par axes, indice de boucle
     integer :: n, i
@@ -27,26 +27,26 @@ PROGRAM main
     ! particules
     type(Particules) :: p
 
-    ! lecture paramètres
-    open(unit = 10, file = "../entrees/constantes")
-    read (10, *) n
-    read (10, *) centre
-    read (10, *) rayon
-    do i = 1, d
-        read (10, *) bornes(i, :)
-    end do
-    close(10)
 
+
+    ! lecture du fichier d'entrée
+    call readValues("../entrees/constantes", n, bornes, centre, rayon)
+
+    ! création du maillage initial
     select case (choix)
     case (scenario_a)
         ! maillage d'un carré / cube
-        call cube(d, n, bornes, "../sorties/x", p)
+        call pave(d, n, bornes, "../sorties/x", p)
+        call init_pression_pave(bornes, p)
     case (scenario_b)
         ! maillage d'une bulle
         call bulle(d, n, centre, rayon, "../sorties/x", p)
+        call init_pression_bulle(centre, rayon, p)
     case default
         write (*, *) "choix de scénario invalide"
     end select
+
+
 
     ! *******************************************************************************************************
     call rm_Particules(p)

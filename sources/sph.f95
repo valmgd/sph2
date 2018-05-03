@@ -15,7 +15,7 @@ MODULE sph
 
     implicit none
 
-    integer, parameter  :: d = 3
+    integer, parameter  :: d = 2
 
     real(rp), parameter :: C_SPH         =              7.0_rp**(3-d) *            14.0_rp**(d-2)
     real(rp), parameter :: V_SPH         =                  pi**(3-d) * (4.0_rp*pi/3.0_rp)**(d-2)
@@ -28,6 +28,11 @@ MODULE sph
         real(rp), dimension(:, :), allocatable :: x
         ! volume des particules
         real(rp), dimension(:), allocatable :: w
+
+        ! variables équations d'Euler
+        real(rp), dimension(:), allocatable :: rho
+        real(rp), dimension(:, :), allocatable :: u
+        real(rp), dimension(:), allocatable :: P
     end type Particules
 
 contains
@@ -45,6 +50,15 @@ contains
         end if
         if (allocated(part%w)) then
             deallocate(part%w)
+        end if
+        if (allocated(part%rho)) then
+            deallocate(part%rho)
+        end if
+        if (allocated(part%u)) then
+            deallocate(part%u)
+        end if
+        if (allocated(part%P)) then
+            deallocate(part%P)
         end if
     end subroutine
 
@@ -205,7 +219,7 @@ contains
     ! -------------------------------------------------------------------------------------------------------
     ! Gradient en x de W(x, y, R) = W(x - y, R)
     ! -------------------------------------------------------------------------------------------------------
-    ! x : élt de R**2 (en pratique coordonnées d'une particule)
+    ! z : élt de R**2 (en pratique coordonnées d'une particule)
     ! R : rayon SPH
     ! grad : résultat (R**2)
     subroutine dx_W_SPH(z, R, grad)
@@ -236,16 +250,14 @@ contains
     ! Approximation régularisée    Permet vérification Somme(wj * W_SPH_ij) = 1 pour f = 1 partout
     ! -------------------------------------------------------------------------------------------------------
     ! i : numéro de la particule
-    ! x : tableau de l'ensemble des particules (une particule de 2 coordonnées par ligne)
-    ! w : tableau de l'ensemble des volumes associé aux particules
+    ! part : liste des particules
     ! R : rayon SPH
     ! f : f(x_j) j = 1, np (nombre particules)
     ! image : approx de f(x_i) retournée
-    subroutine AR(i, x, w, R, f, image)
+    subroutine AR(i, part, R, f, image)
         ! paramètres
         integer, intent(in) :: i
-        real(rp), dimension(:, :), intent(in) :: x
-        real(rp), dimension(:), intent(in) :: w
+        type(Particules), intent(in) :: part
         real(rp), intent(in) :: R
         real(rp), dimension(:), intent(in) :: f
         real(rp), intent(out) :: image
@@ -255,9 +267,9 @@ contains
 
         image = 0.0_rp
 
-        do j = 1, size(w)
-            if (fnorme2(x(i, :) - x(j, :)) <= R) then
-                image = image + w(j) * f(j) * W_SPH(x(i, :) - x(j, :), R)
+        do j = 1, part%n
+            if (fnorme2(part%x(i, :) - part%x(j, :)) <= R) then
+                image = image + part%w(j) * f(j) * W_SPH(part%x(i, :) - part%x(j, :), R)
             end if
         end do
     end subroutine
@@ -269,16 +281,14 @@ contains
     ! Trois approximations différentes du gradient de f en x_i (GR, GR_m et GR_p)
     ! -------------------------------------------------------------------------------------------------------
     ! i : numéro de la particule
-    ! x : tableau de l'ensemble des particules (une particule de 2 coordonnées par ligne)
-    ! w : tableau de l'ensemble des volumes associé aux particules
+    ! part : liste des particules
     ! R : rayon SPH
     ! f : f(x_j) j = 1, np (nombre particules)
     ! image : approx de \nabla f(x_i) retournée
-    subroutine GR(i, x, w, R, f, image)
+    subroutine GR(i, part, R, f, image)
         ! paramètres
         integer, intent(in) :: i
-        real(rp), dimension(:, :), intent(in) :: x
-        real(rp), dimension(:), intent(in) :: w
+        type(Particules), intent(in) :: part
         real(rp), intent(in) :: R
         real(rp), dimension(:), intent(in) :: f
         real(rp), dimension(d), intent(out) :: image
@@ -290,31 +300,29 @@ contains
         image = 0.0_rp
 
         do j = 1, i - 1
-            if (fnorme2(x(i, :) - x(j, :)) <= R) then
-                call dx_W_SPH(x(i, :) - x(j, :), R, grad)
-                image = image + w(j) * f(j) * grad
+            if (fnorme2(part%x(i, :) - part%x(j, :)) <= R) then
+                call dx_W_SPH(part%x(i, :) - part%x(j, :), R, grad)
+                image = image + part%w(j) * f(j) * grad
             end if
         end do
 
-        do j = i + 1, size(w)
-            if (fnorme2(x(i, :) - x(j, :)) <= R) then
-                call dx_W_SPH(x(i, :) - x(j, :), R, grad)
-                image = image + w(j) * f(j) * grad
+        do j = i + 1, part%n
+            if (fnorme2(part%x(i, :) - part%x(j, :)) <= R) then
+                call dx_W_SPH(part%x(i, :) - part%x(j, :), R, grad)
+                image = image + part%w(j) * f(j) * grad
             end if
         end do
     end subroutine
 
     ! i : numéro de la particule
-    ! x : tableau de l'ensemble des particules (une particule de 2 coordonnées par ligne)
-    ! w : tableau de l'ensemble des volumes associé aux particules
+    ! part : liste des particules
     ! R : rayon SPH
     ! f : f(x_j) j = 1, np (nombre particules)
     ! image : approx de \nabla f(x_i) retournée
-    subroutine GR_m(i, x, w, R, f, image)
+    subroutine GR_m(i, part, R, f, image)
         ! paramètres
         integer, intent(in) :: i
-        real(rp), dimension(:, :), intent(in) :: x
-        real(rp), dimension(:), intent(in) :: w
+        type(Particules), intent(in) :: part
         real(rp), intent(in) :: R
         real(rp), dimension(:), intent(in) :: f
         real(rp), dimension(d), intent(out) :: image
@@ -326,31 +334,29 @@ contains
         image = 0.0_rp
 
         do j = 1, i - 1
-            if (fnorme2(x(i, :) - x(j, :)) <= R) then
-                call dx_W_SPH(x(i, :) - x(j, :), R, grad)
-                image = image + w(j) * (f(j) - f(i)) * grad
+            if (fnorme2(part%x(i, :) - part%x(j, :)) <= R) then
+                call dx_W_SPH(part%x(i, :) - part%x(j, :), R, grad)
+                image = image + part%w(j) * (f(j) - f(i)) * grad
             end if
         end do
 
-        do j = i + 1, size(w)
-            if (fnorme2(x(i, :) - x(j, :)) <= R) then
-                call dx_W_SPH(x(i, :) - x(j, :), R, grad)
-                image = image + w(j) * (f(j) - f(i)) * grad
+        do j = i + 1, part%n
+            if (fnorme2(part%x(i, :) - part%x(j, :)) <= R) then
+                call dx_W_SPH(part%x(i, :) - part%x(j, :), R, grad)
+                image = image + part%w(j) * (f(j) - f(i)) * grad
             end if
         end do
     end subroutine
 
     ! i : numéro de la particule
-    ! x : tableau de l'ensemble des particules (une particule de 2 coordonnées par ligne)
-    ! w : tableau de l'ensemble des volumes associé aux particules
+    ! part : liste des particules
     ! R : rayon SPH
     ! f : f(x_j) j = 1, np (nombre particules)
     ! image : approx de \nabla f(x_i) retournée
-    subroutine GR_p(i, x, w, R, f, image)
+    subroutine GR_p(i, part, R, f, image)
         ! paramètres
         integer, intent(in) :: i
-        real(rp), dimension(:, :), intent(in) :: x
-        real(rp), dimension(:), intent(in) :: w
+        type(Particules), intent(in) :: part
         real(rp), intent(in) :: R
         real(rp), dimension(:), intent(in) :: f
         real(rp), dimension(d), intent(out) :: image
@@ -362,16 +368,16 @@ contains
         image = 0.0_rp
 
         do j = 1, i - 1
-            if (fnorme2(x(i, :) - x(j, :)) <= R) then
-                call dx_W_SPH(x(i, :) - x(j, :), R, grad)
-                image = image + w(j) * (f(j) + f(i)) * grad
+            if (fnorme2(part%x(i, :) - part%x(j, :)) <= R) then
+                call dx_W_SPH(part%x(i, :) - part%x(j, :), R, grad)
+                image = image + part%w(j) * (f(j) + f(i)) * grad
             end if
         end do
 
-        do j = i + 1, size(w)
-            if (fnorme2(x(i, :) - x(j, :)) <= R) then
-                call dx_W_SPH(x(i, :) - x(j, :), R, grad)
-                image = image + w(j) * (f(j) + f(i)) * grad
+        do j = i + 1, part%n
+            if (fnorme2(part%x(i, :) - part%x(j, :)) <= R) then
+                call dx_W_SPH(part%x(i, :) - part%x(j, :), R, grad)
+                image = image + part%w(j) * (f(j) + f(i)) * grad
             end if
         end do
     end subroutine
@@ -416,33 +422,31 @@ contains
     ! vecteur ni = R_SPH * \sum_j ( wj \nabla W_ij ) pour toute particule i
     ! -------------------------------------------------------------------------------------------------------
     ! R_SPH : rayon du noyau SPH
-    ! x : particules
-    ! w : volume des particules
+    ! part : liste des particules
     ! n : vecteurs normaux non normalisés (en sortie)
-    subroutine normale(R_SPH, x, w, n)
+    subroutine normale(R_SPH, part, n)
         ! paramètres
         real(rp), intent(in) :: R_SPH
-        real(rp), dimension(:, :), intent(in) :: x
-        real(rp), dimension(:), intent(in) :: w
-        real(rp), dimension(size(w), d), intent(out) :: n
+        type(Particules), intent(in) :: part
+        real(rp), dimension(part%n, d), intent(out) :: n
 
         ! variables locales
         integer :: i, j, k
         real(rp), dimension(d) :: ni, grad
 
-        do i = 1, size(w)
+        do i = 1, part%n
             ni = 0.0_rp
             do j = 1, i - 1
-                if (fnorme2(x(i, :) - x(j, :)) <= R_SPH) then
-                    call dx_W_SPH(x(i, :) - x(j, :), R_SPH, grad)
-                    ni = ni + w(j) * grad
+                if (fnorme2(part%x(i, :) - part%x(j, :)) <= R_SPH) then
+                    call dx_W_SPH(part%x(i, :) - part%x(j, :), R_SPH, grad)
+                    ni = ni + part%w(j) * grad
                 end if
             end do
 
-            do j = i + 1, size(w)
-                if (fnorme2(x(i, :) - x(j, :)) <= R_SPH) then
-                    call dx_W_SPH(x(i, :) - x(j, :), R_SPH, grad)
-                    ni = ni + w(j) * grad
+            do j = i + 1, part%n
+                if (fnorme2(part%x(i, :) - part%x(j, :)) <= R_SPH) then
+                    call dx_W_SPH(part%x(i, :) - part%x(j, :), R_SPH, grad)
+                    ni = ni + part%w(j) * grad
                 end if
             end do
 
@@ -458,37 +462,33 @@ contains
     ! -------------------------------------------------------------------------------------------------------
     ! y : coefficient de tension de surface (gamma)
     ! i : numéro d'une particule
-    ! x : particules (coordonnées)
-    ! w : volume des particules
+    ! part : liste des particules
     ! R_SPH : rayon SPH
-    subroutine F_TS(y, i, x, w, n, R_SPH, F)
+    subroutine F_TS(y, i, part, n, R_SPH, F)
         ! paramètres
         real(rp), intent(in) :: y
         integer, intent(in) :: i
-        real(rp), dimension(:, :), intent(in) :: x
-        real(rp), dimension(:), intent(in) :: w
+        type(Particules), intent(in) :: part
         real(rp), dimension(:, :), intent(in) :: n
         real(rp), intent(in) :: R_SPH
         real(rp), dimension(d), intent(out) :: F
 
         ! variables locales
         real(rp), dimension(d) :: ni, nj
-        integer :: k, np, j
-
-        np = size(w)
+        integer :: k, j
 
         F = 0.0_rp
         do j = 1, i - 1
-            if (fnorme2(x(i, :) - x(j, :)) <= R_SPH) then
-                F = F + y * w(i) * R_SPH * C_Akinci(fnorme2(x(i, :) - x(j, :)), R_SPH) &
-                    * (x(i, :) - x(j, :)) / fnorme2(x(i, :) - x(j, :)) &
+            if (fnorme2(part%x(i, :) - part%x(j, :)) <= R_SPH) then
+                F = F + y * part%w(i) * R_SPH * C_Akinci(fnorme2(part%x(i, :) - part%x(j, :)), R_SPH) &
+                    * (part%x(i, :) - part%x(j, :)) / fnorme2(part%x(i, :) - part%x(j, :)) &
                     + y * R_SPH * (n(i, :) - n(j, :))
             end if
         end do
-        do j = i + 1, np
-            if (fnorme2(x(i, :) - x(j, :)) <= R_SPH) then
-                F = F + y * w(i) * R_SPH * C_Akinci(fnorme2(x(i, :) - x(j, :)), R_SPH) &
-                    * (x(i, :) - x(j, :)) / fnorme2(x(i, :) - x(j, :)) &
+        do j = i + 1, part%n
+            if (fnorme2(part%x(i, :) - part%x(j, :)) <= R_SPH) then
+                F = F + y * part%w(i) * R_SPH * C_Akinci(fnorme2(part%x(i, :) - part%x(j, :)), R_SPH) &
+                    * (part%x(i, :) - part%x(j, :)) / fnorme2(part%x(i, :) - part%x(j, :)) &
                     + y * R_SPH * (n(i, :) - n(j, :))
             end if
         end do
@@ -580,34 +580,30 @@ contains
     ! -------------------------------------------------------------------------------------------------------
     ! y : coefficient de tension de surface (gamma)
     ! i : numéro d'une particule
-    ! x : particules (coordonnées)
-    ! w : volume des particules
+    ! part : liste des particules
     ! R_SPH : rayon SPH
-    subroutine F_TS_cohesion(y, i, x, w, R_SPH, F)
+    subroutine F_TS_cohesion(y, i, part, R_SPH, F)
         ! paramètres
         real(rp), intent(in) :: y
         integer, intent(in) :: i
-        real(rp), dimension(:, :), intent(in) :: x
-        real(rp), dimension(:), intent(in) :: w
+        type(Particules), intent(in) :: part
         real(rp), intent(in) :: R_SPH
         real(rp), dimension(d), intent(out) :: F
 
         ! variables locales
-        integer :: k, np, j
-
-        np = size(w)
+        integer :: k, j
 
         F = 0.0_rp
         do j = 1, i - 1
-            if (fnorme2(x(i, :) - x(j, :)) <= R_SPH) then
-                F = F + y * w(i) * R_SPH * C_Akinci(fnorme2(x(i, :) - x(j, :)), R_SPH) &
-                    * (x(i, :) - x(j, :)) / fnorme2(x(i, :) - x(j, :))
+            if (fnorme2(part%x(i, :) - part%x(j, :)) <= R_SPH) then
+                F = F + y * part%w(i) * R_SPH * C_Akinci(fnorme2(part%x(i, :) - part%x(j, :)), R_SPH) &
+                    * (part%x(i, :) - part%x(j, :)) / fnorme2(part%x(i, :) - part%x(j, :))
             end if
         end do
-        do j = i + 1, np
-            if (fnorme2(x(i, :) - x(j, :)) <= R_SPH) then
-                F = F + y * w(i) * R_SPH * C_Akinci(fnorme2(x(i, :) - x(j, :)), R_SPH) &
-                    * (x(i, :) - x(j, :)) / fnorme2(x(i, :) - x(j, :))
+        do j = i + 1, part%n
+            if (fnorme2(part%x(i, :) - part%x(j, :)) <= R_SPH) then
+                F = F + y * part%w(i) * R_SPH * C_Akinci(fnorme2(part%x(i, :) - part%x(j, :)), R_SPH) &
+                    * (part%x(i, :) - part%x(j, :)) / fnorme2(part%x(i, :) - part%x(j, :))
             end if
         end do
     end subroutine

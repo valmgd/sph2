@@ -12,9 +12,67 @@ MODULE donnees
 
 contains
 
+    ! -------------------------------------------------------------------------------------------------------
+    ! lire valeur en cherchant balises
+    ! -------------------------------------------------------------------------------------------------------
+    subroutine readValues(nom_fichier, n, bornes, centre, rayon)
+        ! paramètres
+        character(len=*), intent(in) :: nom_fichier
+        integer, intent(out) :: n
+        real(rp), dimension(:, :), intent(out) :: bornes
+        real(rp), dimension(:), intent(out) :: centre
+        real(rp), intent(out) :: rayon
+
+        ! variables locales
+        character(len=20) :: ligne
+        integer :: i
+
+        ligne = " "
+        open(unit = 10, file = nom_fichier)
+        do while (trim(ligne) /= "#n")
+            read (10, *) ligne
+        end do
+        read (10, *) n
+        close(10)
+
+        ligne = " "
+        open(unit = 10, file = nom_fichier)
+        do while (trim(ligne) /= "#bornes")
+            read (10, *) ligne
+        end do
+        do i = 1, d
+            read (10, *) bornes(i, :)
+        end do
+        close(10)
+
+        ligne = " "
+        open(unit = 10, file = nom_fichier)
+        do while (trim(ligne) /= "#centre")
+            read (10, *) ligne
+        end do
+        read (10, *) centre
+        close(10)
+
+        ligne = " "
+        open(unit = 10, file = nom_fichier)
+        do while (trim(ligne) /= "#rayon")
+            read (10, *) ligne
+        end do
+        read (10, *) rayon
+        close(10)
+    end subroutine
+
+
+
+    ! -------------------------------------------------------------------------------------------------------
+    ! pression, fonction affine, nulle au bord, ayant une valeur max au centre de la bulle
+    ! -------------------------------------------------------------------------------------------------------
+    ! x : point dans la bulle auquel on veut estimer la pression
+    ! centreBulle : centre
+    ! rayonBulle : rayon
     function pression(x, centreBulle, rayonBulle)
         ! paramètres
-        real(rp), dimension(2), intent(in) :: x, centreBulle
+        real(rp), dimension(d), intent(in) :: x, centreBulle
         real(rp), intent(in) :: rayonBulle
 
         ! return
@@ -34,21 +92,37 @@ contains
         end if
     end function
 
-    subroutine init_pression(x, centreBulle, rayonBulle, P)
+
+
+    ! -------------------------------------------------------------------------------------------------------
+    ! initialise la pression pour toutes les particules
+    ! -------------------------------------------------------------------------------------------------------
+    ! part : liste de particules
+    subroutine init_pression_bulle(centreBulle, rayonBulle, part)
         ! paramètres
-        real(rp), dimension(:, :), intent(in) :: x
         real(rp), dimension(:), intent(in) :: centreBulle
         real(rp), intent(in) :: rayonBulle
-        real(rp), dimension(:), intent(out) :: P
+        type(Particules), intent(inout) :: part
 
         ! variables locales
-        integer :: np, i
+        integer :: i
 
-        np = size(P)
-        do i = 1, np
-            P(i) = pression(x(i, :), centreBulle, rayonBulle)
+        do i = 1, part%n
+            part%P(i) = pression(part%x(i, :), centreBulle, rayonBulle)
         end do
     end subroutine
+
+    subroutine init_pression_pave(bornes, part)
+        ! paramètres
+        real(rp), dimension(:, :), intent(in) :: bornes
+        type(Particules), intent(inout) :: part
+
+        ! variables locales
+
+        part%P = 0.0_rp
+    end subroutine
+
+
 
     ! -------------------------------------------------------------------------------------------------------
     ! maille un carré / cube / hypercube... et écrit les valeurs dans un fichier
@@ -58,7 +132,7 @@ contains
     ! bornes : bornes du pavé à mailler -> xmin, xmax \n ymin, ymax \n zmin, zmax
     ! nom_fichier : début du nom des fichiers dans lequel sont écrits les points et l'enveloppe du pavé
     ! part : liste de particules retournées (coordonnées + volumes)
-    subroutine cube(d_Omega, n, bornes, nom_fichier, part)
+    subroutine pave(d_Omega, n, bornes, nom_fichier, part)
         ! paramètres
         integer, intent(in) :: d_Omega, n
         real(rp), dimension(d_Omega, 2), intent(in) :: bornes
@@ -80,7 +154,7 @@ contains
         deallocate(subd_axes)
 
         part%n = size(part%x, 1)
-        allocate(part%w(part%n))
+        allocate(part%w(part%n), part%rho(part%n), part%u(part%n, d_Omega), part%P(part%n))
         part%w = dx**d_Omega
 
         call writeMat(part%x, nom_fichier // "_points.dat")
@@ -141,7 +215,7 @@ contains
         call meshCircle(d_Omega, centre, rayon, n, part%x)
         dx = (part%x(2, 1) - part%x(1, 1))
         part%n = size(part%x, 1)
-        allocate(part%w(part%n))
+        allocate(part%w(part%n), part%rho(part%n), part%u(part%n, d_Omega), part%P(part%n))
         part%w = dx**d_Omega
 
         ! sauvegarde particules et dimension
@@ -160,9 +234,9 @@ contains
         if (d_Omega == 2) then
             call writeMat(cercle, nom_fichier // "_enveloppe.dat")
         else if (d_Omega == 3) then
-        open(unit = 10, file = nom_fichier // "_enveloppe.dat")
-        write (10, *)
-        close(10)
+            open(unit = 10, file = nom_fichier // "_enveloppe.dat")
+            write (10, *)
+            close(10)
         end if
     end subroutine
 

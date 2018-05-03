@@ -1,6 +1,13 @@
+#n
 11                ! n
-0.0D0 0.0D0 0.0D0 ! centre bulle
-1.0D0             ! rayon bulle
+
+#bornes
 0.0D0 1.0D0       ! xmin xmax
 0.0D0 1.0D0       ! ymin ymax
 0.0D0 1.0D0       ! zmin zmax
+
+#centre
+0.0D0 0.0D0 0.0D0 ! centre bulle
+
+#rayon
+1.0D0             ! rayon bulle

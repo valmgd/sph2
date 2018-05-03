@@ -3,7 +3,7 @@
 reset;
 # fichier de sortie
 set term postscript eps enhanced color solid size 3.5,2.62 font 'Helvetica,12';
-set output "../graphes/pave.ps";
+set output "../graphes/fluide.ps";
 set encoding utf8;
 
 d = system("cat ../sorties/x_d.dat");
