@@ -15,7 +15,7 @@ MODULE sph
 
     implicit none
 
-    integer, parameter  :: d = 2
+    integer, parameter  :: d = 3
 
     real(rp), parameter :: C_SPH         =              7.0_rp**(3-d) *            14.0_rp**(d-2)
     real(rp), parameter :: V_SPH         =                  pi**(3-d) * (4.0_rp*pi/3.0_rp)**(d-2)
@@ -98,7 +98,7 @@ contains
     subroutine meshCircle(d_Omega, centre, rayon, n_diametre, x)
         ! paramètres
         integer, intent(in) :: d_Omega
-        real(rp), dimension(2), intent(in) :: centre
+        real(rp), dimension(d_Omega), intent(in) :: centre
         real(rp), intent(in) :: rayon
         integer, intent(in) :: n_diametre
         real(rp), dimension(:, :), allocatable, intent(out) :: x
@@ -107,7 +107,7 @@ contains
         integer :: i, j, k
         real(rp), dimension(n_diametre + 1, d_Omega) :: xm
         real(rp), dimension(n_diametre, d_Omega) :: axes
-        real(rp), dimension(n_diametre * n_diametre, 2) :: xtemp
+        real(rp), dimension(n_diametre**d_Omega, d_Omega) :: xtemp
         real(rp), dimension(d_Omega) :: temp
         real(rp) :: delta
         integer :: length, N
@@ -119,7 +119,7 @@ contains
         end do
 
         do i = 1, n_diametre
-            axes(i, :) = (axes(i, :) + axes(i + 1, :)) / 2.0_rp
+            axes(i, :) = (xm(i, :) + xm(i + 1, :)) / 2.0_rp
         end do
 
         delta = (axes(2, 1) - axes(1, 1)) / 2.0_rp

@@ -16,8 +16,6 @@ set grid;
 if (d == 2) {
     set xlabel "x";
     set ylabel "y";
-    set xrange[-0.4:1.4];
-    set yrange[-0.4:1.4];
     set border 16;
     set size ratio -1;
 
@@ -25,9 +23,6 @@ if (d == 2) {
     plot "../sorties/x_points.dat" u 1:2 lc rgb "#008000" lw 2 title "particules",\
         "../sorties/x_enveloppe.dat" u 1:2 w l lt rgb "green" lw 2 title "bord de {/Symbol W}";
 } else {
-    set xrange[-0.4:1.4];
-    set yrange[-0.4:1.4];
-    set zrange[-0.4:1.4];
     set view equal xyz
     splot "../sorties/x_points.dat" u 1:2:3 lc rgb "#008000" lw 2 title "particules",\
         "../sorties/x_enveloppe.dat" u 1:2:3 w l lt rgb "green" lw 2 title "bord de {/Symbol W}";
