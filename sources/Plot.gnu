@@ -21,11 +21,13 @@ if (d == 2) {
 
 # tracé
     plot "../sorties/x_points.dat" u 1:2 lc rgb "#008000" lw 2 title "particules",\
-        "../sorties/x_enveloppe.dat" u 1:2 w l lt rgb "green" lw 2 title "bord de {/Symbol W}";
+        "../sorties/x_enveloppe.dat" u 1:2 w l lt rgb "green" lw 2 title "bord de {/Symbol W}",\
+        "../sorties/normale.dat" u 1:2:3:4 with vectors head filled lt rgb "black" title "G^R(1)(x)";
 } else {
     set view equal xyz
     splot "../sorties/x_points.dat" u 1:2:3 lc rgb "#008000" lw 2 title "particules",\
-        "../sorties/x_enveloppe.dat" u 1:2:3 w l lt rgb "green" lw 2 title "bord de {/Symbol W}";
+        "../sorties/x_enveloppe.dat" u 1:2:3 w l lt rgb "green" lw 2 title "bord de {/Symbol W}",\
+        "../sorties/normale.dat" u 1:2:3:4:5:6 with vectors head filled lt rgb "black" title "G^R(1)(x)";
 }
 
 

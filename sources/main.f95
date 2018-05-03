@@ -46,6 +46,8 @@ PROGRAM main
         write (*, *) "choix de scénario invalide"
     end select
 
+    call normale_surface_GR(p, "../sorties/normale.dat")
+
 
 
     ! *******************************************************************************************************

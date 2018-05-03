@@ -156,6 +156,7 @@ contains
         part%n = size(part%x, 1)
         allocate(part%w(part%n), part%rho(part%n), part%u(part%n, d_Omega), part%P(part%n))
         part%w = dx**d_Omega
+        part%R = I_SPH * dx
 
         call writeMat(part%x, nom_fichier // "_points.dat")
         open(unit = 10, file = nom_fichier // "_d.dat")
@@ -217,6 +218,7 @@ contains
         part%n = size(part%x, 1)
         allocate(part%w(part%n), part%rho(part%n), part%u(part%n, d_Omega), part%P(part%n))
         part%w = dx**d_Omega
+        part%R = I_SPH * dx
 
         ! sauvegarde particules et dimension
         call writeMat(part%x, nom_fichier // "_points.dat")
@@ -238,6 +240,36 @@ contains
             write (10, *)
             close(10)
         end if
+    end subroutine
+
+
+
+    ! -------------------------------------------------------------------------------------------------------
+    ! calcul GR(1)
+    ! -------------------------------------------------------------------------------------------------------
+    subroutine normale_surface_GR(part, nom_fichier)
+        ! paramètres
+        type(Particules), intent(in) :: part
+        character(len=*), intent(in) :: nom_fichier
+
+        ! variables locales
+        integer :: i, k
+        real(rp), dimension(d) :: grad
+        real(rp), dimension(part%n, d * 2) :: nvec
+        real(rp) :: length
+
+        length = 0.5_rp * (fnorme2(part%x(part%n/2, :) - part%x(part%n/2+1, :)))
+
+        do i = 1, part%n
+            call GR(i, part, (/ (1.0_rp, k=1, part%n) /), grad)
+            if (fnorme2(grad) > 10.0**(-10)) then
+                nvec(i, :) = (/ part%x(i, :), (grad/fnorme2(grad))*length /)
+            else
+                nvec(i, :) = 0.0_rp
+            end if
+        end do
+
+        call writeMat(nvec, nom_fichier)
     end subroutine
 
 END MODULE donnees
