@@ -21,7 +21,32 @@ MODULE sph
     real(rp), parameter :: V_SPH         =                  pi**(3-d) * (4.0_rp*pi/3.0_rp)**(d-2)
     real(rp), parameter :: C_norm_akinci = (417.0_rp/370.0_rp)**(3-d) *             1.0_rp**(d-2)
 
+    type :: Particules
+        ! nombre de particules
+        integer :: n
+        ! coordonnées des particules
+        real(rp), dimension(:, :), allocatable :: x
+        ! volume des particules
+        real(rp), dimension(:), allocatable :: w
+    end type Particules
+
 contains
+
+    ! -------------------------------------------------------------------------------------------------------
+    ! destructeur
+    ! -------------------------------------------------------------------------------------------------------
+    ! part : variable structuré de type Particules que l'on veut désallouer
+    subroutine rm_Particules(part)
+        ! paramètres
+        type(Particules), intent(inout) :: part
+
+        if (allocated(part%x)) then
+            deallocate(part%x)
+        end if
+        if (allocated(part%w)) then
+            deallocate(part%w)
+        end if
+    end subroutine
 
     ! -------------------------------------------------------------------------------------------------------
     ! créer un quadrillage à partir d'une subdivision de x1, de x2 et éventuellement de x3
@@ -66,8 +91,13 @@ contains
     ! -------------------------------------------------------------------------------------------------------
     ! Maille un disque étant donné son centre, son rayon et le nombre de particules sur le diamètre
     ! -------------------------------------------------------------------------------------------------------
-    subroutine meshCircle(centre, rayon, n_diametre, x)
+    ! centre : centre de la bulle à mailler
+    ! rayon : rayon de la bulle à mailler
+    ! n_diametre : nombre de points voulus sur un diametre
+    ! x : coordonnées des particules retournées
+    subroutine meshCircle(d_Omega, centre, rayon, n_diametre, x)
         ! paramètres
+        integer, intent(in) :: d_Omega
         real(rp), dimension(2), intent(in) :: centre
         real(rp), intent(in) :: rayon
         integer, intent(in) :: n_diametre
@@ -75,33 +105,50 @@ contains
 
         ! variables locales
         integer :: i, j, k
-        real(rp), dimension(n_diametre + 1) :: xm1, xm2
-        real(rp), dimension(n_diametre) :: x1, x2
+        real(rp), dimension(n_diametre + 1, d_Omega) :: xm
+        real(rp), dimension(n_diametre, d_Omega) :: axes
         real(rp), dimension(n_diametre * n_diametre, 2) :: xtemp
-        real(rp), dimension(2) :: temp
+        real(rp), dimension(d_Omega) :: temp
         real(rp) :: delta
+        integer :: length, N
+        integer, dimension(:), allocatable :: indice
 
-        xm1 = linspace(centre(1) - rayon, centre(1) + rayon, n_diametre + 1)
-        xm2 = linspace(centre(2) - rayon, centre(2) + rayon, n_diametre + 1)
 
-        do i = 1, n_diametre
-            x1(i) = (xm1(i) + xm1(i + 1)) / 2.0_rp
-            x2(i) = (xm2(i) + xm2(i + 1)) / 2.0_rp
+        do i = 1, d_Omega
+            xm(:, i) = linspace(centre(i) - rayon, centre(i) + rayon, n_diametre + 1)
         end do
 
-        delta = (x1(2) - x1(1)) / 2.0_rp
-        k = 0
         do i = 1, n_diametre
-            do j = 1, n_diametre
-                temp = (/ x1(i), x2(j) /)
-                if (fnorme2(temp - centre) <= rayon - 0.99_rp * delta) then
-                    k = k + 1
-                    xtemp(k, :) = temp
+            axes(i, :) = (axes(i, :) + axes(i + 1, :)) / 2.0_rp
+        end do
+
+        delta = (axes(2, 1) - axes(1, 1)) / 2.0_rp
+        length = size(axes, 1)
+        N = length**d_Omega
+
+        allocate(indice(d_Omega))
+        indice = 1
+
+        k = 0
+        do i = 1, N
+            do j = 1, d_Omega
+                temp(j) = axes(indice(j), j)
+            end do
+            if (fnorme2(temp - centre) <= rayon - 0.99_rp * delta) then
+                k = k + 1
+                xtemp(k, :) = temp
+            end if
+
+            do j = d_Omega, 1, -1
+                if (indice(j) < length) then
+                    indice(j) = indice(j) + 1
+                    exit
+                else
+                    indice(j) = 1
                 end if
             end do
         end do
 
-        print *, k
         allocate(x(k, 2))
         x = xtemp(1:k, :)
     end subroutine

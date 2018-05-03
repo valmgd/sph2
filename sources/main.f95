@@ -12,30 +12,35 @@ PROGRAM main
 
     implicit none
 
-    character(len=4), parameter :: choix_a = "cube"
-    character(len=4), parameter :: choix_b = "rond"
-    character(len=4) :: choix = choix_a
+    character(len=4), parameter :: scenario_a = "cube"
+    character(len=4), parameter :: scenario_b = "rond"
+    character(len=4), parameter :: choix = scenario_a
 
-    ! nombre de points par axes
-    integer :: n
+    ! nombre de points par axes, indice de boucle
+    integer :: n, i
     ! bornes du domaine dans chaque direction
-    real(rp) :: xmin, xmax
-    ! liste des particules
-    real(rp), dimension(:, :), allocatable :: x
-    ! volume des particules
-    real(rp), dimension(:), allocatable :: w
+    real(rp), dimension(d, 2) :: bornes
+    ! pour une bulle
+    real(rp), dimension(d) :: centre
+    real(rp) :: rayon
+
+    ! particules
+    type(Particules) :: p
 
     ! lecture paramètres
     open(unit = 10, file = "../entrees/constantes")
     read (10, *) n
-    read (10, *) xmin
-    read (10, *) xmax
+    read (10, *) centre
+    read (10, *) rayon
+    do i = 1, d
+        read (10, *) bornes(i, :)
+    end do
     close(10)
 
     ! maillage d'un carré / cube
-    call cube(d, n, xmin, xmax, "../sorties/x", x, w)
+    call cube(d, n, bornes, "../sorties/x", p)
 
     ! *******************************************************************************************************
-    deallocate(x)
+    call rm_Particules(p)
 
 END PROGRAM main

@@ -50,40 +50,67 @@ contains
         end do
     end subroutine
 
-    subroutine cube(d_Omega, n, xmin, xmax, nom_fichier, x, w)
+    ! -------------------------------------------------------------------------------------------------------
+    ! maille un carré / cube / hypercube... et écrit les valeurs dans un fichier
+    ! -------------------------------------------------------------------------------------------------------
+    ! d_Omega : dimension du pavé à mailler
+    ! n : nombre de points de maillage par axe du domaine (n points en x, n points en y etc)
+    ! bornes : bornes du pavé à mailler -> xmin, xmax \n ymin, ymax \n zmin, zmax
+    ! nom_fichier : début du nom des fichiers dans lequel sont écrits les points et l'enveloppe du pavé
+    ! part : liste de particules retournées (coordonnées + volumes)
+    subroutine cube(d_Omega, n, bornes, nom_fichier, part)
         ! paramètres
         integer, intent(in) :: d_Omega, n
-        real(rp), intent(in) :: xmax, xmin
+        real(rp), dimension(d_Omega, 2), intent(in) :: bornes
         character(len=*), intent(in) :: nom_fichier
-        real(rp), dimension(:, :), allocatable, intent(out) :: x
-        real(rp), dimension(:), allocatable, intent(out) :: w
+        type(Particules), intent(out) :: part
 
         ! variables locales
         real(rp), dimension(:, :), allocatable :: subd_axes
         integer :: i, np
         real(rp) :: dx
 
-        dx = (xmax - xmin) / n
+        dx = (bornes(1, 2) - bornes(1, 1)) / n
         allocate(subd_axes(n, d_Omega))
         do i = 1, d_Omega
-            subd_axes(:, i) = linspace(xmin + dx/2.0_rp, xmax - dx/2.0_rp, n)
+            subd_axes(:, i) = linspace(bornes(i, 1) + dx/2.0_rp, bornes(i, 2) - dx/2.0_rp, n)
         end do
 
-        call meshgrid(subd_axes, x)
+        call meshgrid(subd_axes, part%x)
         deallocate(subd_axes)
 
-        np = size(x, 1)
-        allocate(w(np))
-        w = dx
+        part%n = size(part%x, 1)
+        allocate(part%w(part%n))
+        part%w = dx
 
-        call writeMat(x, nom_fichier // "_points.dat")
-        open(unit = 10, file = nom_fichier // "_enveloppe.dat")
-        write (10, *) xmin, xmin
-        write (10, *) xmax, xmin
-        write (10, *) xmax, xmax
-        write (10, *) xmin, xmax
-        write (10, *) xmin, xmin
+        call writeMat(part%x, nom_fichier // "_points.dat")
+        open(unit = 10, file = nom_fichier // "_d.dat")
+        write (10, *) d_Omega
         close(10)
+        if (d_Omega == 2) then
+            open(unit = 10, file = nom_fichier // "_enveloppe.dat")
+            write (10, *) bornes(1, 1), bornes(2, 1)
+            write (10, *) bornes(1, 2), bornes(2, 1)
+            write (10, *) bornes(1, 2), bornes(2, 2)
+            write (10, *) bornes(1, 1), bornes(2, 2)
+            write (10, *) bornes(1, 1), bornes(2, 1)
+            close(10)
+        else if (d_Omega == 3) then
+            open(unit = 10, file = nom_fichier // "_enveloppe.dat")
+            write (10, *) bornes(1, 1), bornes(2, 1), bornes(3, 1)
+            write (10, *) bornes(1, 1), bornes(2, 1), bornes(3, 2)
+            write (10, *) bornes(1, 1), bornes(2, 2), bornes(3, 2)
+            write (10, *) bornes(1, 1), bornes(2, 2), bornes(3, 1)
+            write (10, *) bornes(1, 1), bornes(2, 1), bornes(3, 1)
+            write (10, *)
+
+            write (10, *) bornes(1, 2), bornes(2, 1), bornes(3, 1)
+            write (10, *) bornes(1, 2), bornes(2, 1), bornes(3, 2)
+            write (10, *) bornes(1, 2), bornes(2, 2), bornes(3, 2)
+            write (10, *) bornes(1, 2), bornes(2, 2), bornes(3, 1)
+            write (10, *) bornes(1, 2), bornes(2, 1), bornes(3, 1)
+            close(10)
+        end if
     end subroutine
 
 END MODULE donnees
