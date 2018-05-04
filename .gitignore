@@ -1,6 +1,8 @@
 objets/*.mod
 objets/*.o
-sources/.*.swp
 run/truc
-graphes/*.eps
+graphes/*.ps
 sorties/*.dat
+entrees/.*.swp
+sources/.*.swp
+sorties/.*.swp

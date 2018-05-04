@@ -68,7 +68,7 @@ make :
 # supprimer les fichiers objet et l'exécutable s'ils existent
 .PHONY : clean
 clean :
-	rm -f $(OBJ_DIR)/* $(RUN_DIR)/*
+	rm -f $(OBJ_DIR)/*.mod $(OBJ_DIR)/*.o $(RUN_DIR)/$(EXEC)
 
 # effacer le contenu des dossiers d'entrees et de sorties
 .PHONY : del
