@@ -44,7 +44,6 @@ PROGRAM main
         ! maillage d'une bulle
         call bulle(SPH_D, n, centre, rayon, "../sorties/x", p)
         call init_var_bulle(centre, rayon, p)
-        print *, maxval(p%P)
     case default
         write (*, *) "choix de scénario invalide"
     end select

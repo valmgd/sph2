@@ -7,7 +7,7 @@ set output "../graphes/fluide.ps";
 set encoding utf8;
 
 d = system("cat ../sorties/x_d.dat");
-print "dimension : ", d;
+#print "dimension : ", d;
 
 # paramètres
 set title "Gradient régularisé de la fonction 1";

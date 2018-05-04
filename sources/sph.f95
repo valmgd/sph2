@@ -602,6 +602,10 @@ contains
 
 
 
+    ! =======================================================================================================
+    ! Schéma SPH
+    ! =======================================================================================================
+
     ! -------------------------------------------------------------------------------------------------------
     ! ressemble à une itération en temps de l'une des équation du schéma SPH
     ! -------------------------------------------------------------------------------------------------------
@@ -616,9 +620,12 @@ contains
 
         do i = 1, part%n
             call GR_p(i, part, part%P, grad_pressure)
-            d_rwu_dt(i, :) = part%w(i) * grad_pressure + part%fts(i, :)
+            d_rwu_dt(i, :) = part%fts(i, :) - part%w(i) * grad_pressure
         end do
-        print *, "sum_i [ w_i GR_p(P)_i + (FTS)_i ] =", sum(d_rwu_dt(:, 1)), sum(d_rwu_dt(:, 2))
+        !print *, "sum_i [ w_i GR_p(P)_i + (FTS)_i ] =", sum(d_rwu_dt(:, 1)), sum(d_rwu_dt(:, 2))
+        print *, sum(d_rwu_dt(:, 1)), sum(d_rwu_dt(:, 2))
+        print *, "max", maxval(abs(d_rwu_dt)), minval(abs(d_rwu_dt))
+        call affMat(d_rwu_dt)
     end subroutine
 
 END MODULE sph
