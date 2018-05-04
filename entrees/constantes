@@ -1,3 +1,12 @@
+#dimension
+2
+
+#sigma
+0.073D0
+
+#intervalle
+4.0D0
+
 #n
 11                ! n
 

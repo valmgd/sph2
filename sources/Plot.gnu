@@ -12,20 +12,43 @@ print "dimension : ", d;
 # paramètres
 set title "Gradient régularisé de la fonction 1";
 set grid;
+set palette rgbformulae 22,13,-31;
+set cblabel "pression"
+set key outside;
+set border 16;
+
 
 if (d == 2) {
+    ntics = 2;
+    stats "../sorties/x_scale.dat" using 1 name "x" nooutput;
+    stats "../sorties/x_scale.dat" using 2 name "y" nooutput;
+    set xtics x_max/ntics;
+    set ytics y_max/ntics;
+
+    #stats "../sorties/P.dat" using 3 name "P" nooutput
+    #set cbrange [0:P_max];
+    set cbrange [0:0.15];
     set xlabel "x";
     set ylabel "y";
-    set border 16;
     set size ratio -1;
 
 # tracé
-    plot "../sorties/x_points.dat" u 1:2 lc rgb "#008000" lw 2 title "particules",\
+    plot "../sorties/P.dat" u 1:2:3 with points pointtype 5 pointsize 1 palette title "particules",\
         "../sorties/x_enveloppe.dat" u 1:2 w l lt rgb "green" lw 2 title "bord de {/Symbol W}",\
         "../sorties/normale.dat" u 1:2:3:4 with vectors head filled lt rgb "black" title "G^R(1)(x)";
+
 } else {
-    set view equal xyz
-    splot "../sorties/x_points.dat" u 1:2:3 lc rgb "#008000" lw 2 title "particules",\
+    ntics = 2;
+    stats "../sorties/x_scale.dat" using 1 name "x" nooutput;
+    stats "../sorties/x_scale.dat" using 2 name "y" nooutput;
+    stats "../sorties/x_scale.dat" using 3 name "z" nooutput;
+    set xtics x_max/ntics;
+    set ytics y_max/ntics;
+    set ztics z_max/ntics;
+
+    set cbrange [0:0.15];
+    set view equal xyz;
+    splot "../sorties/P.dat" u 1:2:3:4 with points pointtype 5 pointsize 1 palette title "particules",\
         "../sorties/x_enveloppe.dat" u 1:2:3 w l lt rgb "green" lw 2 title "bord de {/Symbol W}",\
         "../sorties/normale.dat" u 1:2:3:4:5:6 with vectors head filled lt rgb "black" title "G^R(1)(x)";
 }

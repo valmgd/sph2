@@ -12,33 +12,9 @@
 MODULE sph
 
     use math
+    use var
 
     implicit none
-
-    integer, parameter  :: d = 2
-
-    real(rp), parameter :: C_SPH         =              7.0_rp**(3-d) *            14.0_rp**(d-2)
-    real(rp), parameter :: V_SPH         =                  pi**(3-d) * (4.0_rp*pi/3.0_rp)**(d-2)
-    real(rp), parameter :: C_norm_akinci = (417.0_rp/370.0_rp)**(3-d) *             1.0_rp**(d-2)
-
-    real(rp), parameter :: I_SPH = 4.0_rp
-
-    type :: Particules
-        ! nombre de particules
-        integer :: n
-        ! coordonnées des particules
-        real(rp), dimension(:, :), allocatable :: x
-        ! volume des particules
-        real(rp), dimension(:), allocatable :: w
-
-        ! rayon SPH
-        real(rp) :: R
-
-        ! variables équations d'Euler
-        real(rp), dimension(:), allocatable :: rho
-        real(rp), dimension(:, :), allocatable :: u
-        real(rp), dimension(:), allocatable :: P
-    end type Particules
 
 contains
 
@@ -66,6 +42,8 @@ contains
             deallocate(part%P)
         end if
     end subroutine
+
+
 
     ! -------------------------------------------------------------------------------------------------------
     ! créer un quadrillage à partir d'une subdivision de x1, de x2 et éventuellement de x3
@@ -186,7 +164,7 @@ contains
         real(rp) :: theta
 
         if ((0.0_rp <= q) .and. (q <= 1.0_rp)) then
-            theta = C_SPH * (1.0_rp - q)**4 * (1.0_rp + 4.0_rp*q)
+            theta = SPH_C_NORM_NOYAU * (1.0_rp - q)**4 * (1.0_rp + 4.0_rp*q)
         else
             theta = 0.0_rp
         end if
@@ -202,7 +180,7 @@ contains
     ! W : résultat (réel)
     function W_SPH(x, R) result(W)
         ! paramètres
-        real(rp), dimension(d), intent(in) :: x
+        real(rp), dimension(SPH_D), intent(in) :: x
         real(rp), intent(in) :: R
 
         ! return
@@ -213,7 +191,7 @@ contains
 
         call norme2(x, norm)
         if (norm <= R) then
-            W = theta(norm / R) / (V_SPH * R**d)
+            W = theta(norm / R) / (SPH_VOLUME_SUPP * R**SPH_D)
         else
             W = 0.0_rp
         end if
@@ -229,9 +207,9 @@ contains
     ! grad : résultat (R**2)
     subroutine dx_W_SPH(z, R, grad)
         ! paramètres
-        real(rp), dimension(d), intent(in) :: z
+        real(rp), dimension(SPH_D), intent(in) :: z
         real(rp), intent(in) :: R
-        real(rp), dimension(d), intent(out) :: grad
+        real(rp), dimension(SPH_D), intent(out) :: grad
 
         ! variables locales
         !real(rp) :: u, v
@@ -243,7 +221,7 @@ contains
 
         if (norm <= R) then
             q = norm / R
-            grad = (C_SPH / (V_SPH * R**d)) * (-20.0_rp / R) * (z / norm) * q * (1-q)**3
+            grad = (SPH_C_NORM_NOYAU / (SPH_VOLUME_SUPP * R**SPH_D)) * (-20.0_rp / R) * (z / norm) * q * (1-q)**3
         else
             grad = 0.0_rp
         end if
@@ -292,11 +270,11 @@ contains
         integer, intent(in) :: i
         type(Particules), intent(in) :: part
         real(rp), dimension(:), intent(in) :: f
-        real(rp), dimension(d), intent(out) :: image
+        real(rp), dimension(SPH_D), intent(out) :: image
 
         ! variables locales
         integer :: j
-        real(rp), dimension(d) :: grad
+        real(rp), dimension(SPH_D) :: grad
 
         image = 0.0_rp
 
@@ -324,11 +302,11 @@ contains
         integer, intent(in) :: i
         type(Particules), intent(in) :: part
         real(rp), dimension(:), intent(in) :: f
-        real(rp), dimension(d), intent(out) :: image
+        real(rp), dimension(SPH_D), intent(out) :: image
 
         ! variables locales
         integer :: j
-        real(rp), dimension(d) :: grad
+        real(rp), dimension(SPH_D) :: grad
 
         image = 0.0_rp
 
@@ -356,11 +334,11 @@ contains
         integer, intent(in) :: i
         type(Particules), intent(in) :: part
         real(rp), dimension(:), intent(in) :: f
-        real(rp), dimension(d), intent(out) :: image
+        real(rp), dimension(SPH_D), intent(out) :: image
 
         ! variables locales
         integer :: j
-        real(rp), dimension(d) :: grad
+        real(rp), dimension(SPH_D) :: grad
 
         image = 0.0_rp
 
@@ -381,6 +359,10 @@ contains
 
 
 
+    ! =======================================================================================================
+    ! TENSION SUPERFICIELLE
+    ! =======================================================================================================
+
     ! -------------------------------------------------------------------------------------------------------
     ! Noyau cohésion pour tension de surface (cf C(r) Akinci p. 3)
     ! -------------------------------------------------------------------------------------------------------
@@ -391,21 +373,12 @@ contains
         ! return
         real(rp) :: C
 
-        ! variables locales
-        real(rp) :: kernel_TS, q
-        real(RP), save :: TSkernorm = 139.0_rp / 1120.0_rp * 336.0_rp / 37.0_rp
-        ! en dimension 2, sinon vaut 1 en dimension 3
-        real(RP), save :: C_norm = 417.0_rp / 370.0_rp
-        integer :: d
-
-        d = 2
-
         if ((0.0_rp < r) .and. (r <= R_SPH / 2.0_rp)) then
-            C = C_norm * (32.0_rp / (pi * R_SPH**d * R_SPH**6)) * &
+            C = SPH_C_NORM_AKINCI * (32.0_rp / (pi * R_SPH**SPH_D * R_SPH**6)) * &
                 (2.0_rp * (R_SPH - r)**3 * r**3 - R_SPH**6 / 64.0_rp)
 
         else if ((R_SPH / 2.0_rp < r) .and. (r <= R_SPH)) then
-            C = C_norm * (32.0_rp / (pi * R_SPH**d * R_SPH**6)) * &
+            C = SPH_C_NORM_AKINCI * (32.0_rp / (pi * R_SPH**SPH_D * R_SPH**6)) * &
                 (R_SPH - r)**3 * r**3
 
         else
@@ -420,14 +393,13 @@ contains
     ! -------------------------------------------------------------------------------------------------------
     ! part : liste des particules
     ! n : vecteurs normaux non normalisés (en sortie)
-    subroutine normale(part, n)
+    subroutine set_gradR(part)
         ! paramètres
-        type(Particules), intent(in) :: part
-        real(rp), dimension(part%n, d), intent(out) :: n
+        type(Particules), intent(inout) :: part
 
         ! variables locales
         integer :: i, j, k
-        real(rp), dimension(d) :: ni, grad
+        real(rp), dimension(SPH_D) :: ni, grad
 
         do i = 1, part%n
             ni = 0.0_rp
@@ -445,9 +417,8 @@ contains
                 end if
             end do
 
-            n(i, :) = part%R * ni
+            part%gradR(i, :) = part%R * ni
         end do
-
     end subroutine
 
 
@@ -455,35 +426,65 @@ contains
     ! -------------------------------------------------------------------------------------------------------
     ! Force de tension de surface solver SPH
     ! -------------------------------------------------------------------------------------------------------
-    ! y : coefficient de tension de surface (gamma)
+    ! sigma : coefficient de tension de surface (gamma)
     ! i : numéro d'une particule
     ! part : liste des particules
-    subroutine F_TS(y, i, part, n, F)
+    subroutine FTS_akinci(sigma, i, part, F)
         ! paramètres
-        real(rp), intent(in) :: y
+        real(rp), intent(in) :: sigma
         integer, intent(in) :: i
         type(Particules), intent(in) :: part
-        real(rp), dimension(:, :), intent(in) :: n
-        real(rp), dimension(d), intent(out) :: F
+        real(rp), dimension(SPH_D), intent(out) :: F
 
         ! variables locales
-        real(rp), dimension(d) :: ni, nj
+        real(rp), dimension(SPH_D) :: ni, nj
         integer :: k, j
 
         F = 0.0_rp
         do j = 1, i - 1
             if (fnorme2(part%x(i, :) - part%x(j, :)) <= part%R) then
-                F = F + y * part%w(i) * part%R * C_Akinci(fnorme2(part%x(i, :) - part%x(j, :)), part%R) &
+                F = F + sigma * part%w(i) * part%R * C_Akinci(fnorme2(part%x(i, :) - part%x(j, :)), part%R) &
                     * (part%x(i, :) - part%x(j, :)) / fnorme2(part%x(i, :) - part%x(j, :)) &
-                    + y * part%R * (n(i, :) - n(j, :))
+                    + sigma * part%R * (part%gradR(i, :) - part%gradR(j, :))
             end if
         end do
         do j = i + 1, part%n
             if (fnorme2(part%x(i, :) - part%x(j, :)) <= part%R) then
-                F = F + y * part%w(i) * part%R * C_Akinci(fnorme2(part%x(i, :) - part%x(j, :)), part%R) &
+                F = F + sigma * part%w(i) * part%R * C_Akinci(fnorme2(part%x(i, :) - part%x(j, :)), part%R) &
                     * (part%x(i, :) - part%x(j, :)) / fnorme2(part%x(i, :) - part%x(j, :)) &
-                    + y * part%R * (n(i, :) - n(j, :))
+                    + sigma * part%R * (part%gradR(i, :) - part%gradR(j, :))
             end if
+        end do
+    end subroutine
+
+
+
+    ! -------------------------------------------------------------------------------------------------------
+    ! calculer la tension de surface pour toute particule i
+    ! -------------------------------------------------------------------------------------------------------
+    ! sigma : coefficient de tension superficielle (cste)
+    ! part : liste des particules
+    subroutine set_fts(FTS_func, sigma, part)
+        ! paramètres
+        interface
+            subroutine FTS_func(sigma_, i_, part_, F)
+                use math
+                use var
+                real(rp), intent(in) :: sigma_
+                integer, intent(in) :: i_
+                type(Particules), intent(in) :: part_
+                real(rp) :: part
+                real(rp), dimension(SPH_D), intent(out) :: F
+            end subroutine
+        end interface
+        real(rp), intent(in) :: sigma
+        type(Particules), intent(inout) :: part
+
+        ! variables locales
+        integer :: i
+
+        do i = 1, part%n
+            call FTS_func(sigma, i, part, part%fts(i, :))
         end do
     end subroutine
 
@@ -494,7 +495,7 @@ contains
     ! -------------------------------------------------------------------------------------------------------
     function C_Kordilla(x, R) result(W)
         ! paramètres
-        real(rp), dimension(d), intent(in) :: x
+        real(rp), dimension(SPH_D), intent(in) :: x
         real(rp), intent(in) :: R
 
         ! return
@@ -531,11 +532,11 @@ contains
         real(rp), intent(in) :: y, R_SPH
         integer, intent(in) :: i, j
         real(rp), dimension(:, :), intent(in) :: x
-        real(rp), dimension(d), intent(out) :: F
+        real(rp), dimension(SPH_D), intent(out) :: F
 
         ! variables locales
         real(rp) :: s_ff, A, B, h1, h2
-        real(rp), dimension(d) :: r
+        real(rp), dimension(SPH_D) :: r
         real(rp) :: length
 
         A = 2.0_rp
@@ -579,7 +580,7 @@ contains
         real(rp), intent(in) :: y
         integer, intent(in) :: i
         type(Particules), intent(in) :: part
-        real(rp), dimension(d), intent(out) :: F
+        real(rp), dimension(SPH_D), intent(out) :: F
 
         ! variables locales
         integer :: k, j
@@ -597,6 +598,27 @@ contains
                     * (part%x(i, :) - part%x(j, :)) / fnorme2(part%x(i, :) - part%x(j, :))
             end if
         end do
+    end subroutine
+
+
+
+    ! -------------------------------------------------------------------------------------------------------
+    ! ressemble à une itération en temps de l'une des équation du schéma SPH
+    ! -------------------------------------------------------------------------------------------------------
+    subroutine iter_SPH(part)
+        ! paramètres
+        type(Particules), intent(in) :: part
+
+        ! variables locales
+        real(rp), dimension(SPH_D) :: grad_pressure
+        real(rp), dimension(part%n, SPH_D) :: d_rwu_dt
+        integer :: i
+
+        do i = 1, part%n
+            call GR_p(i, part, part%P, grad_pressure)
+            d_rwu_dt(i, :) = part%w(i) * grad_pressure + part%fts(i, :)
+        end do
+        print *, "sum_i [ w_i GR_p(P)_i + (FTS)_i ] =", sum(d_rwu_dt(:, 1)), sum(d_rwu_dt(:, 2))
     end subroutine
 
 END MODULE sph
