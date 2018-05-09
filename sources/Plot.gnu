@@ -32,7 +32,7 @@ if (d == 2) {
 
 #stats "../sorties/P.dat" using 3 name "P" nooutput
 #set cbrange [0:P_max];
-    set cbrange [0:0.15];
+#set cbrange [0:0.15];
     set xlabel "x";
     set ylabel "y";
     set size ratio -1;
@@ -41,7 +41,7 @@ if (d == 2) {
     plot "../sorties/P.dat" u 1:2:3 with points pointtype 5 pointsize 1 palette title "particules",\
         "../sorties/x_enveloppe.dat" u 1:2 w l lt rgb "green" lw 2 title "bord de {/Symbol W}",\
         "../sorties/plot_vec.dat" u 1:2:3:4:($5>0?1:2) with vectors title "D{/Symbol rw}u / Dt" lw 0.5 linecolor variable,\
-        #"../sorties/normale.dat" u 1:2:3:4 with vectors head filled lt rgb "black" title "direction G^R(1)(x)",\
+#"../sorties/normale.dat" u 1:2:3:4 with vectors head filled lt rgb "black" title "direction G^R(1)(x)",\
         ;
 
 } else {
@@ -53,7 +53,7 @@ if (d == 2) {
     set ytics y_max/ntics;
     set ztics z_max/ntics;
 
-    set cbrange [0:0.15];
+#set cbrange [0:0.15];
     set view equal xyz;
 
     splot "../sorties/P.dat" u 1:2:3:4 with points pointtype 5 pointsize 1 palette title "particules",\
