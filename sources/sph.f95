@@ -32,6 +32,14 @@ contains
         if (allocated(part%w)) then
             deallocate(part%w)
         end if
+
+        if (allocated(part%gradR)) then
+            deallocate(part%gradR)
+        end if
+        if (allocated(part%fts)) then
+            deallocate(part%fts)
+        end if
+
         if (allocated(part%rho)) then
             deallocate(part%rho)
         end if
@@ -609,20 +617,24 @@ contains
     ! -------------------------------------------------------------------------------------------------------
     ! ressemble à une itération en temps de l'une des équation du schéma SPH
     ! -------------------------------------------------------------------------------------------------------
-    subroutine iter_SPH(part)
+    subroutine iter_SPH(part, centre)
         ! paramètres
         type(Particules), intent(in) :: part
+        real(rp), dimension(SPH_D), intent(in) :: centre
 
         ! variables locales
         real(rp), dimension(SPH_D) :: grad_pressure
         real(rp), dimension(part%n, SPH_D) :: d_rwu_dt
         integer :: i
-        real(rp), dimension(part%n, 2 * SPH_D) :: plot_vec
+        real(rp), dimension(part%n, 2 * SPH_D + 1) :: plot_vec
+        real(rp) :: prod
 
         do i = 1, part%n
             call GR_p(i, part, part%P, grad_pressure)
             d_rwu_dt(i, :) = part%fts(i, :) - part%w(i) * grad_pressure
-            plot_vec(i, :) = (/ part%x(i, :), d_rwu_dt(i, :) /)
+
+            call prodScal(part%x(i, :) - centre, d_rwu_dt(i, :), prod)
+            plot_vec(i, :) = (/ part%x(i, :), d_rwu_dt(i, :), prod /)
         end do
         !print *, "sum_i [ w_i GR_p(P)_i + (FTS)_i ] =", sum(d_rwu_dt(:, 1)), sum(d_rwu_dt(:, 2))
         !print *, sum(d_rwu_dt(:, 1)), sum(d_rwu_dt(:, 2))

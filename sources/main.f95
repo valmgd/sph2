@@ -58,7 +58,7 @@ PROGRAM main
     call set_fts(FTS_akinci, DONNEES_SIGMA, p)
 
     ! schéma SPH (équation 2)
-    call iter_SPH(p)
+    call iter_SPH(p, centre)
 
 
 

@@ -18,6 +18,10 @@ set cblabel "pression"
 set key outside;
 set border 16;
 
+# duo de couleurs
+set linetype 1 linecolor rgb "orange"
+set linetype 2 linecolor rgb "blue"
+
 
 if (d == 2) {
     ntics = 2;
@@ -36,7 +40,7 @@ if (d == 2) {
 # tracé
     plot "../sorties/P.dat" u 1:2:3 with points pointtype 5 pointsize 1 palette title "particules",\
         "../sorties/x_enveloppe.dat" u 1:2 w l lt rgb "green" lw 2 title "bord de {/Symbol W}",\
-        "../sorties/plot_vec.dat" u 1:2:3:4 with vectors head filled lt rgb "blue" title "0.2 D{/Symbol rw}u / Dt",\
+        "../sorties/plot_vec.dat" u 1:2:3:4:($5>0?1:2) with vectors title "D{/Symbol rw}u / Dt" lw 0.5 linecolor variable,\
         #"../sorties/normale.dat" u 1:2:3:4 with vectors head filled lt rgb "black" title "direction G^R(1)(x)",\
         ;
 

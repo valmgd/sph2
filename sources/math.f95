@@ -325,18 +325,17 @@ contains
     ! n : dimension de l'espace
     ! vec1, vec2 : deux vecteurs de taille n
     ! prod : scalaire, résultat du produit
-    subroutine prodScal(n, vec1, vec2, prod)
+    subroutine prodScal(vec1, vec2, prod)
         ! parametres
-        integer, intent(in) :: n
-        real(rp), dimension(n), intent(in) :: vec1, vec2
+        real(rp), dimension(:), intent(in) :: vec1, vec2
         real(rp), intent(out) :: prod
 
         ! variables locales
         integer :: i
 
-        prod = 0.d0
+        prod = 0.0_rp
 
-        do i = 1, n
+        do i = 1, size(vec1)
             prod = prod + vec1(i) * vec2(i) 
         end do
     end subroutine prodScal
@@ -362,7 +361,7 @@ contains
         real(rp) :: temp
 
         do i = 1, n
-            call prodScal(n, mat(i, :), vec, temp)
+            call prodScal(mat(i, :), vec, temp)
             prod(i) = temp
         end do
     end subroutine prodMatVec
@@ -397,7 +396,7 @@ contains
         y(1) = Pb(1) / L(1, 1)
 
         do i = 2, n
-            call prodScal(i - 1, y(1:i-1), L(i, 1:i-1), temp)
+            call prodScal(y(1:i-1), L(i, 1:i-1), temp)
             y(i) = (Pb(i) - temp) / L(i, i)
         end do
 
@@ -406,7 +405,7 @@ contains
         x(n) = y(n) / U(n, n)
 
         do i = n - 1, 1, -1
-            call prodScal(n - i, x(i+1:n), U(i, i+1:n), temp)
+            call prodScal(x(i+1:n), U(i, i+1:n), temp)
             x(i) = (y(i) - temp) / U(i, i)
         end do
 
