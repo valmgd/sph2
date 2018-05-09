@@ -2,7 +2,8 @@
 # réinitialisation des paramètres
 reset;
 # fichier de sortie
-set term postscript eps enhanced color solid size 3.5,2.62 font 'Helvetica,12';
+#set term postscript eps enhanced color solid size 3.5,2.62 font 'Helvetica,12';
+set term postscript eps enhanced color solid size 7,5.24 font 'Helvetica,12';
 set output "../graphes/fluide.ps";
 set encoding utf8;
 
@@ -25,8 +26,8 @@ if (d == 2) {
     set xtics x_max/ntics;
     set ytics y_max/ntics;
 
-    #stats "../sorties/P.dat" using 3 name "P" nooutput
-    #set cbrange [0:P_max];
+#stats "../sorties/P.dat" using 3 name "P" nooutput
+#set cbrange [0:P_max];
     set cbrange [0:0.15];
     set xlabel "x";
     set ylabel "y";
@@ -35,7 +36,9 @@ if (d == 2) {
 # tracé
     plot "../sorties/P.dat" u 1:2:3 with points pointtype 5 pointsize 1 palette title "particules",\
         "../sorties/x_enveloppe.dat" u 1:2 w l lt rgb "green" lw 2 title "bord de {/Symbol W}",\
-        "../sorties/normale.dat" u 1:2:3:4 with vectors head filled lt rgb "black" title "G^R(1)(x)";
+        "../sorties/plot_vec.dat" u 1:2:3:4 with vectors head filled lt rgb "blue" title "0.2 D{/Symbol rw}u / Dt",\
+        #"../sorties/normale.dat" u 1:2:3:4 with vectors head filled lt rgb "black" title "direction G^R(1)(x)",\
+        ;
 
 } else {
     ntics = 2;
@@ -48,9 +51,11 @@ if (d == 2) {
 
     set cbrange [0:0.15];
     set view equal xyz;
+
     splot "../sorties/P.dat" u 1:2:3:4 with points pointtype 5 pointsize 1 palette title "particules",\
         "../sorties/x_enveloppe.dat" u 1:2:3 w l lt rgb "green" lw 2 title "bord de {/Symbol W}",\
-        "../sorties/normale.dat" u 1:2:3:4:5:6 with vectors head filled lt rgb "black" title "G^R(1)(x)";
+        "../sorties/normale.dat" u 1:2:3:4:5:6 with vectors head filled lt rgb "black" title "direction G^R(1)(x)",\
+        ;
 }
 
 

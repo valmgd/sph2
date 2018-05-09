@@ -617,15 +617,18 @@ contains
         real(rp), dimension(SPH_D) :: grad_pressure
         real(rp), dimension(part%n, SPH_D) :: d_rwu_dt
         integer :: i
+        real(rp), dimension(part%n, 2 * SPH_D) :: plot_vec
 
         do i = 1, part%n
             call GR_p(i, part, part%P, grad_pressure)
             d_rwu_dt(i, :) = part%fts(i, :) - part%w(i) * grad_pressure
+            plot_vec(i, :) = (/ part%x(i, :), d_rwu_dt(i, :) /)
         end do
         !print *, "sum_i [ w_i GR_p(P)_i + (FTS)_i ] =", sum(d_rwu_dt(:, 1)), sum(d_rwu_dt(:, 2))
-        print *, sum(d_rwu_dt(:, 1)), sum(d_rwu_dt(:, 2))
-        print *, "max", maxval(abs(d_rwu_dt)), minval(abs(d_rwu_dt))
-        call affMat(d_rwu_dt)
+        !print *, sum(d_rwu_dt(:, 1)), sum(d_rwu_dt(:, 2))
+        !call affMat(d_rwu_dt)
+
+        call writeMat(plot_vec, "../sorties/plot_vec.dat")
     end subroutine
 
 END MODULE sph
