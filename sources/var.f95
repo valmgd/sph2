@@ -32,6 +32,7 @@ MODULE var
 
         ! rayon SPH
         real(rp) :: R
+        real(rp) :: dx
 
         ! gradient de la fc cste R
         real(rp), dimension(:, :), allocatable :: gradR

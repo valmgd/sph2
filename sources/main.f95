@@ -59,6 +59,7 @@ PROGRAM main
 
     ! schéma SPH (équation 2)
     call iter_SPH(p, centre)
+    call quarter(p, centre)
 
 
 

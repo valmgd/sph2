@@ -226,6 +226,7 @@ contains
         real(rp) :: dx
 
         dx = (bornes(1, 2) - bornes(1, 1)) / n
+        part%dx = dx
         allocate(subd_axes(n, d_Omega))
         do i = 1, d_Omega
             subd_axes(:, i) = linspace(bornes(i, 1) + dx/2.0_rp, bornes(i, 2) - dx/2.0_rp, n)
@@ -299,6 +300,7 @@ contains
 
         call meshCircle(d_Omega, centre, rayon, n, part%x)
         dx = (part%x(2, 1) - part%x(1, 1))
+        part%dx = dx
         part%n = size(part%x, 1)
         allocate(part%w(part%n), part%rho(part%n), part%u(part%n, d_Omega), part%P(part%n))
         allocate(part%gradR(part%n, d_Omega), part%fts(part%n, d_Omega))
@@ -360,6 +362,45 @@ contains
         end do
 
         call writeMat(nvec, nom_fichier)
+    end subroutine
+
+
+
+    ! -------------------------------------------------------------------------------------------------------
+    ! somme FTS sur quartiers
+    ! -------------------------------------------------------------------------------------------------------
+    subroutine quarter(part, centre)
+        ! paramètres
+        type(Particules), intent(in) :: part
+        real(rp), dimension(2), intent(in) :: centre
+
+        ! variables locales
+        real(rp), dimension(4, SPH_D) :: somme
+        integer :: i
+        real(rp) :: temp
+
+        somme = 0.0_rp
+        temp = 0.5_rp * part%dx
+
+        do i = 1, part%n
+            if ((part%x(i, 1) >= centre(1) - temp) .and. (part%x(i, 2) >= centre(2) - temp)) then
+                somme(1, :) = somme(1, :) + part%fts(i, :)
+            end if
+            if ((part%x(i, 1) <= centre(1) + temp) .and. (part%x(i, 2) >= centre(2) - temp)) then
+                somme(2, :) = somme(2, :) + part%fts(i, :)
+            end if
+            if ((part%x(i, 1) <= centre(1) + temp) .and. (part%x(i, 2) <= centre(2) + temp)) then
+                somme(3, :) = somme(3, :) + part%fts(i, :)
+            end if
+            if ((part%x(i, 1) >= centre(1) - temp) .and. (part%x(i, 2) <= centre(2) + temp)) then
+                somme(4, :) = somme(4, :) + part%fts(i, :)
+            end if
+        end do
+
+        print *, "top right   ", somme(1, :)
+        print *, "top left    ", somme(2, :)
+        print *, "bottom left ", somme(3, :)
+        print *, "bottom right", somme(4, :)
     end subroutine
 
 END MODULE donnees
