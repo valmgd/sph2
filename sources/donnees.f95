@@ -378,22 +378,39 @@ contains
         real(rp), dimension(4, SPH_D) :: somme
         integer :: i
         real(rp) :: temp
+        real(rp), dimension(SPH_D) :: grad_pressure
 
         somme = 0.0_rp
         temp = 0.5_rp * part%dx
 
+        !do i = 1, part%n
+        !    if ((part%x(i, 1) >= centre(1) - temp) .and. (part%x(i, 2) >= centre(2) - temp)) then
+        !        somme(1, :) = somme(1, :) + part%fts(i, :)
+        !    end if
+        !    if ((part%x(i, 1) <= centre(1) + temp) .and. (part%x(i, 2) >= centre(2) - temp)) then
+        !        somme(2, :) = somme(2, :) + part%fts(i, :)
+        !    end if
+        !    if ((part%x(i, 1) <= centre(1) + temp) .and. (part%x(i, 2) <= centre(2) + temp)) then
+        !        somme(3, :) = somme(3, :) + part%fts(i, :)
+        !    end if
+        !    if ((part%x(i, 1) >= centre(1) - temp) .and. (part%x(i, 2) <= centre(2) + temp)) then
+        !        somme(4, :) = somme(4, :) + part%fts(i, :)
+        !    end if
+        !end do
+
         do i = 1, part%n
             if ((part%x(i, 1) >= centre(1) - temp) .and. (part%x(i, 2) >= centre(2) - temp)) then
-                somme(1, :) = somme(1, :) + part%fts(i, :)
+                call GR_p(i, part, part%P, grad_pressure)
+                somme(1, :) = somme(1, :) - part%w(i) * grad_pressure + part%fts(i, :)
             end if
             if ((part%x(i, 1) <= centre(1) + temp) .and. (part%x(i, 2) >= centre(2) - temp)) then
-                somme(2, :) = somme(2, :) + part%fts(i, :)
+                somme(2, :) = somme(2, :) - part%w(i) * grad_pressure + part%fts(i, :)
             end if
             if ((part%x(i, 1) <= centre(1) + temp) .and. (part%x(i, 2) <= centre(2) + temp)) then
-                somme(3, :) = somme(3, :) + part%fts(i, :)
+                somme(3, :) = somme(3, :) - part%w(i) * grad_pressure + part%fts(i, :)
             end if
             if ((part%x(i, 1) >= centre(1) - temp) .and. (part%x(i, 2) <= centre(2) + temp)) then
-                somme(4, :) = somme(4, :) + part%fts(i, :)
+                somme(4, :) = somme(4, :) - part%w(i) * grad_pressure + part%fts(i, :)
             end if
         end do
 
@@ -401,6 +418,8 @@ contains
         print *, "top left    ", somme(2, :)
         print *, "bottom left ", somme(3, :)
         print *, "bottom right", somme(4, :)
+        print *
+        print *, "total       ", somme(1, :) + somme(2, :) + somme(3, :) + somme(4, :)
     end subroutine
 
 END MODULE donnees
