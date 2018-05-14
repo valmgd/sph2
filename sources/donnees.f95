@@ -372,25 +372,36 @@ contains
                 somme(1, :) = somme(1, :) - part%w(i) * grad_pressure + part%fts(i, :)
             end if
             if ((part%x(i, 1) <= centre(1) + temp) .and. (part%x(i, 2) >= centre(2) - temp)) then
+                call GR_p(i, part, part%P, grad_pressure)
                 somme(2, :) = somme(2, :) - part%w(i) * grad_pressure + part%fts(i, :)
             end if
             if ((part%x(i, 1) <= centre(1) + temp) .and. (part%x(i, 2) <= centre(2) + temp)) then
+                call GR_p(i, part, part%P, grad_pressure)
                 somme(3, :) = somme(3, :) - part%w(i) * grad_pressure + part%fts(i, :)
             end if
             if ((part%x(i, 1) >= centre(1) - temp) .and. (part%x(i, 2) <= centre(2) + temp)) then
+                call GR_p(i, part, part%P, grad_pressure)
                 somme(4, :) = somme(4, :) - part%w(i) * grad_pressure + part%fts(i, :)
             end if
         end do
 
         print *
-        print *, "Somme des vecteurs de tension de surface par quartier"
+        print *, ">>>>>>>>>>>>"
+        print *, "Somme des vecteurs D rho w u / Dt par quartier"
+        print *, "__________________________________________________________________________________________&
+            &_____________________________________"
+        print *, "                                                                  |"
         print *, "top left    ", somme(2, :), " | ", "top right   ", somme(1, :)
         print *, "__________________________________________________________________|_______________________&
             &_____________________________________"
         print *, "                                                                  |"
         print *, "bottom left ", somme(3, :), " | ", "bottom right", somme(4, :)
+        print *, "__________________________________________________________________|_______________________&
+            &_____________________________________"
         print *
         print *, "total       ", somme(1, :) + somme(2, :) + somme(3, :) + somme(4, :)
+        print *, "<<<<<<<<<<<<"
+        print *
     end subroutine
 
 END MODULE donnees
