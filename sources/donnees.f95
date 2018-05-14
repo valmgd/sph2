@@ -115,36 +115,6 @@ contains
 
 
     ! -------------------------------------------------------------------------------------------------------
-    ! pression, fonction affine, nulle au bord, ayant une valeur max au centre de la bulle
-    ! -------------------------------------------------------------------------------------------------------
-    ! x : point dans la bulle auquel on veut estimer la pression
-    ! centreBulle : centre
-    ! rayonBulle : rayon
-    function pression(x, centreBulle, rayonBulle)
-        ! paramètres
-        real(rp), dimension(SPH_D), intent(in) :: x, centreBulle
-        real(rp), intent(in) :: rayonBulle
-
-        ! return
-        real(rp) :: pression
-
-        ! variables locales
-        real(rp) :: t
-        real(rp) :: max_P
-
-        t = fnorme2(x - centreBulle)
-
-        if (t < rayonBulle) then
-            max_P = 2.0_rp * DONNEES_SIGMA / rayonBulle
-            pression = (-max_P / rayonBulle) * t + max_P
-        else
-            pression = 0.0_rp
-        end if
-    end function
-
-
-
-    ! -------------------------------------------------------------------------------------------------------
     ! initialise la pression pour toutes les particules
     ! -------------------------------------------------------------------------------------------------------
     ! part : liste de particules
@@ -159,9 +129,7 @@ contains
 
         part%rho = 0.0_rp
         part%u = 0.0_rp
-        do i = 1, part%n
-            part%P(i) = pression(part%x(i, :), centreBulle, rayonBulle)
-        end do
+        part%P = 2.0_rp * DONNEES_SIGMA / rayonBulle
     end subroutine
 
     subroutine init_var_pave(bornes, part)
@@ -397,10 +365,13 @@ contains
             end if
         end do
 
-        print *, "top right   ", somme(1, :)
-        print *, "top left    ", somme(2, :)
-        print *, "bottom left ", somme(3, :)
-        print *, "bottom right", somme(4, :)
+        print *
+        print *, "Somme des vecteurs de tension de surface par quartier"
+        print *, "top left    ", somme(2, :), " | ", "top right   ", somme(1, :)
+        print *, "__________________________________________________________________|_______________________&
+            &_____________________________________"
+        print *, "                                                                  |"
+        print *, "bottom left ", somme(3, :), " | ", "bottom right", somme(4, :)
     end subroutine
 
 END MODULE donnees
