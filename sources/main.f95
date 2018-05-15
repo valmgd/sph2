@@ -6,9 +6,10 @@
 
 PROGRAM main
 
-    use math
-    use var
+    ! libraries
     use sph
+
+    ! modules perso
     use donnees
 
     implicit none

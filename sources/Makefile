@@ -5,7 +5,7 @@
 PROJECT = sph
 
 #
-SOURCES = main.f95 donnees.f95 sph.f95 var.f95 math.f95
+SOURCES = main.f95 donnees.f95 sph.f95 tsup.f95 var.f95 math.f95
 
 OBJ_DIR = ../objets
 RUN_DIR = ../run
@@ -27,32 +27,59 @@ PDF     =
 #  compilation rules
 # -----------------------------------------------------------------------------------------------------------
 # exécutable
-$(RUN_DIR)/$(EXEC) : $(OBJ_DIR)/main.o \
-	                 $(OBJ_DIR)/math.o \
-					 $(OBJ_DIR)/donnees.o \
+$(RUN_DIR)/$(EXEC) : $(OBJ_DIR)/math.o \
+					 $(OBJ_DIR)/var.o \
+					 $(OBJ_DIR)/tsup.o \
 					 $(OBJ_DIR)/sph.o \
-					 $(OBJ_DIR)/var.o
+					 $(OBJ_DIR)/donnees.o \
+	                 $(OBJ_DIR)/main.o
 	$(FC) $(FLAGS) $(OBJ_DIR)/*.o -o $(RUN_DIR)/$(EXEC)
+
+
 
 # programme principal
 $(OBJ_DIR)/main.o : main.f95 \
 	                $(OBJ_DIR)/math.mod \
 					$(OBJ_DIR)/var.mod \
+					 $(OBJ_DIR)/tsup.mod \
 					$(OBJ_DIR)/sph.mod \
 					$(OBJ_DIR)/donnees.mod
 	$(FC) $(FLAGS) -c main.f95 -o $(OBJ_DIR)/main.o
+
+
 
 # modules
 $(OBJ_DIR)/math.o $(OBJ_DIR)/math.mod : math.f95
 	$(FC) $(FLAGS) -c math.f95 -o $(OBJ_DIR)/math.o
 
-$(OBJ_DIR)/var.o $(OBJ_DIR)/var.mod : var.f95 $(OBJ_DIR)/math.mod
+
+
+$(OBJ_DIR)/var.o $(OBJ_DIR)/var.mod : var.f95 \
+	                                  $(OBJ_DIR)/math.mod
 	$(FC) $(FLAGS) -c var.f95 -o $(OBJ_DIR)/var.o
 
-$(OBJ_DIR)/sph.o $(OBJ_DIR)/sph.mod : sph.f95 $(OBJ_DIR)/math.mod $(OBJ_DIR)/var.mod
+
+
+$(OBJ_DIR)/tsup.o $(OBJ_DIR)/tsup.mod : tsup.f95 \
+	                                  $(OBJ_DIR)/math.mod \
+									  $(OBJ_DIR)/var.mod
+	$(FC) $(FLAGS) -c tsup.f95 -o $(OBJ_DIR)/tsup.o
+
+
+
+$(OBJ_DIR)/sph.o $(OBJ_DIR)/sph.mod : sph.f95 \
+	                                  $(OBJ_DIR)/math.mod \
+									  $(OBJ_DIR)/var.mod \
+									  $(OBJ_DIR)/tsup.mod
 	$(FC) $(FLAGS) -c sph.f95 -o $(OBJ_DIR)/sph.o
 
-$(OBJ_DIR)/donnees.o $(OBJ_DIR)/donnees.mod : donnees.f95 $(OBJ_DIR)/math.mod $(OBJ_DIR)/sph.mod $(OBJ_DIR)/var.mod
+
+
+$(OBJ_DIR)/donnees.o $(OBJ_DIR)/donnees.mod : donnees.f95 \
+	                                          $(OBJ_DIR)/math.mod \
+											  $(OBJ_DIR)/var.mod \
+											  $(OBJ_DIR)/tsup.mod \
+											  $(OBJ_DIR)/sph.mod
 	$(FC) $(FLAGS) -c donnees.f95 -o $(OBJ_DIR)/donnees.o
 
 

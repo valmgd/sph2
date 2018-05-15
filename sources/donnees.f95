@@ -3,19 +3,18 @@
 !
 !   subroutine set_DONNEES_SIGMA(valeur)
 !   subroutine readValues(nom_fichier, d_Omega, sigma, intervalle, n, bornes, centre, rayon)
+!   subroutine pave(d_Omega, n, bornes, nom_fichier, part)
+!   subroutine bulle(d_Omega, n, centre, rayon, nom_fichier, part)
 !   subroutine init_var_bulle(centreBulle, rayonBulle, part)
 !   subroutine init_var_pave(bornes, part)
 !   subroutine write_var(part, f_rho, f_u, f_P)
-!   subroutine pave(d_Omega, n, bornes, nom_fichier, part)
-!   subroutine bulle(d_Omega, n, centre, rayon, nom_fichier, part)
 !   subroutine normale_surface_GR(part, nom_fichier)
 !   subroutine quarter(part, centre)
 ! ===========================================================================================================
 
 MODULE donnees
 
-    use math
-    use var
+    ! libraries
     use sph
 
     implicit none
@@ -113,65 +112,6 @@ contains
         end do
         read (10, *) rayon
         close(10)
-    end subroutine
-
-
-
-    ! -------------------------------------------------------------------------------------------------------
-    ! initialise la pression pour toutes les particules
-    ! -------------------------------------------------------------------------------------------------------
-    ! part : liste de particules
-    subroutine init_var_bulle(centreBulle, rayonBulle, part)
-        ! paramètres
-        real(rp), dimension(:), intent(in) :: centreBulle
-        real(rp), intent(in) :: rayonBulle
-        type(Particules), intent(inout) :: part
-
-        ! variables locales
-        integer :: i
-
-        part%rho = 0.0_rp
-        part%u = 0.0_rp
-        part%P = 2.0_rp * DONNEES_SIGMA / rayonBulle
-    end subroutine
-
-    subroutine init_var_pave(bornes, part)
-        ! paramètres
-        real(rp), dimension(:, :), intent(in) :: bornes
-        type(Particules), intent(inout) :: part
-
-        ! variables locales
-        integer :: i
-
-        part%rho = 0.0_rp
-        part%u = 0.0_rp
-        part%P = 0.0_rp
-    end subroutine
-
-
-
-    ! -------------------------------------------------------------------------------------------------------
-    ! enregistres variables rho u P (éq d'Euler)
-    ! -------------------------------------------------------------------------------------------------------
-    subroutine write_var(part, f_rho, f_u, f_P)
-        ! paramètres
-        type(Particules), intent(in) :: part
-        character(len=*), intent(in) :: f_rho, f_u, f_P
-
-        ! variables locales
-        integer :: i
-
-        open(unit = 10, file = f_rho)
-        open(unit = 20, file = f_u)
-        open(unit = 30, file = f_P)
-        do i = 1, part%n
-            write (10, *) part%x(i, :), part%rho(i)
-            write (20, *) part%x(i, :), part%u(i, :)
-            write (30, *) part%x(i, :), part%P(i)
-        end do
-        close(10)
-        close(20)
-        close(30)
     end subroutine
 
 
@@ -303,6 +243,67 @@ contains
         write (10, *) centre - rayon
         write (10, *) centre + rayon
         close(10)
+    end subroutine
+
+
+
+    ! -------------------------------------------------------------------------------------------------------
+    ! initialise la pression pour toutes les particules
+    ! -------------------------------------------------------------------------------------------------------
+    ! part : liste de particules
+    subroutine init_var_bulle(centreBulle, rayonBulle, part)
+        ! paramètres
+        real(rp), dimension(:), intent(in) :: centreBulle
+        real(rp), intent(in) :: rayonBulle
+        type(Particules), intent(inout) :: part
+
+        ! variables locales
+        integer :: i
+
+        part%rho = 0.0_rp
+        part%u = 0.0_rp
+        part%P = 2.0_rp * DONNEES_SIGMA / rayonBulle
+        call set_gradR(part)
+    end subroutine
+
+    subroutine init_var_pave(bornes, part)
+        ! paramètres
+        real(rp), dimension(:, :), intent(in) :: bornes
+        type(Particules), intent(inout) :: part
+
+        ! variables locales
+        integer :: i
+
+        part%rho = 0.0_rp
+        part%u = 0.0_rp
+        part%P = 0.0_rp
+        call set_gradR(part)
+    end subroutine
+
+
+
+    ! -------------------------------------------------------------------------------------------------------
+    ! enregistres variables rho u P (éq d'Euler)
+    ! -------------------------------------------------------------------------------------------------------
+    subroutine write_var(part, f_rho, f_u, f_P)
+        ! paramètres
+        type(Particules), intent(in) :: part
+        character(len=*), intent(in) :: f_rho, f_u, f_P
+
+        ! variables locales
+        integer :: i
+
+        open(unit = 10, file = f_rho)
+        open(unit = 20, file = f_u)
+        open(unit = 30, file = f_P)
+        do i = 1, part%n
+            write (10, *) part%x(i, :), part%rho(i)
+            write (20, *) part%x(i, :), part%u(i, :)
+            write (30, *) part%x(i, :), part%P(i)
+        end do
+        close(10)
+        close(20)
+        close(30)
     end subroutine
 
 
