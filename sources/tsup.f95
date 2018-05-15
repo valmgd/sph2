@@ -122,12 +122,13 @@ contains
     ! -------------------------------------------------------------------------------------------------------
     ! Force d'une particule sur une autre (Kordilla) cohésion ?
     ! -------------------------------------------------------------------------------------------------------
-    ! y : coeff de tension de surface (gamma)
-    subroutine C_kordilla(y, R_SPH, i, j, x, F)
+    ! sigma : coeff de tension de surface (gamma)
+    !function C_akinci(z, R_SPH) result(C)
+    subroutine F_ij_kordilla(sigma, R_SPH, i, j, part, F)
         ! paramètres
-        real(rp), intent(in) :: y, R_SPH
+        real(rp), intent(in) :: sigma, R_SPH
         integer, intent(in) :: i, j
-        real(rp), dimension(:, :), intent(in) :: x
+        type(Particules), intent(in) :: part
         real(rp), dimension(SPH_D), intent(out) :: F
 
         ! variables locales
@@ -140,11 +141,11 @@ contains
         h1 = 0.8_rp
         h2 = 1.0_rp
 
-        r = x(i, :) - x(j, :)
+        r = part%x(i, :) - part%x(j, :)
         length = fnorme2(r)
 
         if (length <= R_SPH) then
-            F = y * (A * W_kordilla(x(i, :), h1) * r / length + B * W_kordilla(x(i, :), h2) * r / length)
+            F = sigma * (A * W_kordilla(r, h1) * r / length + B * W_kordilla(r, h2) * r / length)
         else
             F = 0.0_rp
         end if
@@ -172,12 +173,12 @@ contains
     ! -------------------------------------------------------------------------------------------------------
     ! Force de tension de surface idem akinci mais avec juste F_cohesion
     ! -------------------------------------------------------------------------------------------------------
-    ! y : coefficient de tension de surface (gamma)
+    ! sigma : coefficient de tension de surface (gamma)
     ! i : numéro d'une particule
     ! part : liste des particules
-    subroutine F_TS_cohesion(y, i, part, F)
+    subroutine F_TS_cohesion(sigma, i, part, F)
         ! paramètres
-        real(rp), intent(in) :: y
+        real(rp), intent(in) :: sigma
         integer, intent(in) :: i
         type(Particules), intent(in) :: part
         real(rp), dimension(SPH_D), intent(out) :: F
@@ -188,13 +189,13 @@ contains
         F = 0.0_rp
         do j = 1, i - 1
             if (fnorme2(part%x(i, :) - part%x(j, :)) <= part%R) then
-                F = F + y * part%w(i) * part%R * C_akinci(fnorme2(part%x(i, :) - part%x(j, :)), part%R) &
+                F = F + sigma * part%w(i) * part%R * C_akinci(fnorme2(part%x(i, :) - part%x(j, :)), part%R) &
                     * (part%x(i, :) - part%x(j, :)) / fnorme2(part%x(i, :) - part%x(j, :))
             end if
         end do
         do j = i + 1, part%n
             if (fnorme2(part%x(i, :) - part%x(j, :)) <= part%R) then
-                F = F + y * part%w(i) * part%R * C_akinci(fnorme2(part%x(i, :) - part%x(j, :)), part%R) &
+                F = F + sigma * part%w(i) * part%R * C_akinci(fnorme2(part%x(i, :) - part%x(j, :)), part%R) &
                     * (part%x(i, :) - part%x(j, :)) / fnorme2(part%x(i, :) - part%x(j, :))
             end if
         end do
