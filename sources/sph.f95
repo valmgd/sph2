@@ -8,7 +8,6 @@
 !
 ! a**(3-d) * b**(d-2) = {a si d == 2, b si d == 3}
 !
-!   subroutine rm_Particules(part)
 !   subroutine set_gradR(part)
 !   subroutine meshgrid(xyz, x)
 !   subroutine meshCircle(d_Omega, centre, rayon, n_diametre, x)
@@ -25,8 +24,6 @@
 
 MODULE sph
 
-    use math
-    use var
     use tsup
 
     implicit none
@@ -36,41 +33,6 @@ contains
     ! =======================================================================================================
     ! MAILLAGE
     ! =======================================================================================================
-
-    ! -------------------------------------------------------------------------------------------------------
-    ! destructeur
-    ! -------------------------------------------------------------------------------------------------------
-    ! part : variable structuré de type Particules que l'on veut désallouer
-    subroutine rm_Particules(part)
-        ! paramètres
-        type(Particules), intent(inout) :: part
-
-        if (allocated(part%x)) then
-            deallocate(part%x)
-        end if
-        if (allocated(part%w)) then
-            deallocate(part%w)
-        end if
-
-        if (allocated(part%gradR)) then
-            deallocate(part%gradR)
-        end if
-        if (allocated(part%fts)) then
-            deallocate(part%fts)
-        end if
-
-        if (allocated(part%rho)) then
-            deallocate(part%rho)
-        end if
-        if (allocated(part%u)) then
-            deallocate(part%u)
-        end if
-        if (allocated(part%P)) then
-            deallocate(part%P)
-        end if
-    end subroutine
-
-
 
     ! -------------------------------------------------------------------------------------------------------
     ! vecteur ni = R_SPH * \sum_j ( wj \nabla W_ij ) pour toute particule i

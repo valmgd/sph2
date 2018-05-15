@@ -3,6 +3,7 @@
 !
 !   subroutine set_SPH_D(valeur)
 !   subroutine set_SPH_I(valeur)
+!   subroutine rm_Particules(part)
 ! ===========================================================================================================
 
 MODULE var
@@ -61,6 +62,41 @@ contains
         ! paramètres
         real(rp), intent(in) :: valeur
         SPH_I = valeur
+    end subroutine
+
+
+
+    ! -------------------------------------------------------------------------------------------------------
+    ! destructeur
+    ! -------------------------------------------------------------------------------------------------------
+    ! part : variable structuré de type Particules que l'on veut désallouer
+    subroutine rm_Particules(part)
+        ! paramètres
+        type(Particules), intent(inout) :: part
+
+        if (allocated(part%x)) then
+            deallocate(part%x)
+        end if
+        if (allocated(part%w)) then
+            deallocate(part%w)
+        end if
+
+        if (allocated(part%gradR)) then
+            deallocate(part%gradR)
+        end if
+        if (allocated(part%fts)) then
+            deallocate(part%fts)
+        end if
+
+        if (allocated(part%rho)) then
+            deallocate(part%rho)
+        end if
+        if (allocated(part%u)) then
+            deallocate(part%u)
+        end if
+        if (allocated(part%P)) then
+            deallocate(part%P)
+        end if
     end subroutine
 
 END MODULE var

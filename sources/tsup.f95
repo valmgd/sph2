@@ -11,7 +11,6 @@
 
 MODULE tsup
 
-    use math
     use var
 
     implicit none
