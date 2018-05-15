@@ -1,7 +1,7 @@
 ! ===========================================================================================================
 ! Module pour tension superficielle
 !
-!   function C_Akinci(r, R_SPH) result(C)
+!   function C_akinci(r, R_SPH) result(C)
 !   subroutine FTS_akinci(sigma, i, part, F)
 !   subroutine F_pp_kordilla(y, R_SPH, i, j, x, F)
 !   subroutine F_TS_kordilla()
@@ -24,20 +24,20 @@ contains
     ! -------------------------------------------------------------------------------------------------------
     ! Noyau cohésion pour tension de surface (cf C(r) Akinci p. 3)
     ! -------------------------------------------------------------------------------------------------------
-    function C_Akinci(r, R_SPH) result(C)
+    function C_akinci(z, R_SPH) result(C)
         ! paramètres
-        real(rp), intent(in) :: r, R_SPH
+        real(rp), intent(in) :: z, R_SPH
 
         ! return
         real(rp) :: C
 
-        if ((0.0_rp < r) .and. (r <= R_SPH / 2.0_rp)) then
+        if ((0.0_rp < z) .and. (z <= R_SPH / 2.0_rp)) then
             C = SPH_C_NORM_AKINCI * (32.0_rp / (pi * R_SPH**SPH_D * R_SPH**6)) * &
-                (2.0_rp * (R_SPH - r)**3 * r**3 - R_SPH**6 / 64.0_rp)
+                (2.0_rp * (R_SPH - z)**3 * z**3 - R_SPH**6 / 64.0_rp)
 
-        else if ((R_SPH / 2.0_rp < r) .and. (r <= R_SPH)) then
+        else if ((R_SPH / 2.0_rp < z) .and. (z <= R_SPH)) then
             C = SPH_C_NORM_AKINCI * (32.0_rp / (pi * R_SPH**SPH_D * R_SPH**6)) * &
-                (R_SPH - r)**3 * r**3
+                (R_SPH - z)**3 * z**3
 
         else
             C = 0.0_rp
@@ -66,14 +66,14 @@ contains
         F = 0.0_rp
         do j = 1, i - 1
             if (fnorme2(part%x(i, :) - part%x(j, :)) <= part%R) then
-                F = F + sigma * part%w(i) * part%R * C_Akinci(fnorme2(part%x(i, :) - part%x(j, :)), part%R) &
+                F = F + sigma * part%w(i) * part%R * C_akinci(fnorme2(part%x(i, :) - part%x(j, :)), part%R) &
                     * (part%x(i, :) - part%x(j, :)) / fnorme2(part%x(i, :) - part%x(j, :)) &
                     + sigma * part%R * (part%gradR(i, :) - part%gradR(j, :))
             end if
         end do
         do j = i + 1, part%n
             if (fnorme2(part%x(i, :) - part%x(j, :)) <= part%R) then
-                F = F + sigma * part%w(i) * part%R * C_Akinci(fnorme2(part%x(i, :) - part%x(j, :)), part%R) &
+                F = F + sigma * part%w(i) * part%R * C_akinci(fnorme2(part%x(i, :) - part%x(j, :)), part%R) &
                     * (part%x(i, :) - part%x(j, :)) / fnorme2(part%x(i, :) - part%x(j, :)) &
                     + sigma * part%R * (part%gradR(i, :) - part%gradR(j, :))
             end if
@@ -89,7 +89,7 @@ contains
     ! -------------------------------------------------------------------------------------------------------
     ! noyau Kordilla
     ! -------------------------------------------------------------------------------------------------------
-    function C_Kordilla(x, R) result(W)
+    function W_kordilla(x, R) result(W)
         ! paramètres
         real(rp), dimension(SPH_D), intent(in) :: x
         real(rp), intent(in) :: R
@@ -120,10 +120,10 @@ contains
 
 
     ! -------------------------------------------------------------------------------------------------------
-    ! Force d'une particule sur une autre (Kordilla)
+    ! Force d'une particule sur une autre (Kordilla) cohésion ?
     ! -------------------------------------------------------------------------------------------------------
     ! y : coeff de tension de surface (gamma)
-    subroutine F_pp_kordilla(y, R_SPH, i, j, x, F)
+    subroutine C_kordilla(y, R_SPH, i, j, x, F)
         ! paramètres
         real(rp), intent(in) :: y, R_SPH
         integer, intent(in) :: i, j
@@ -144,7 +144,7 @@ contains
         length = fnorme2(r)
 
         if (length <= R_SPH) then
-            F = y * (A * C_Kordilla(x(i, :), h1) * r / length + B * C_Kordilla(x(i, :), h2) * r / length)
+            F = y * (A * W_kordilla(x(i, :), h1) * r / length + B * W_kordilla(x(i, :), h2) * r / length)
         else
             F = 0.0_rp
         end if
@@ -155,7 +155,7 @@ contains
     ! -------------------------------------------------------------------------------------------------------
     ! force de tension de surface Kordilla
     ! -------------------------------------------------------------------------------------------------------
-    subroutine F_TS_kordilla()
+    subroutine FTS_kordilla()
         ! paramètres
         !++!
 
@@ -164,6 +164,10 @@ contains
     end subroutine
 
 
+
+    ! =======================================================================================================
+    ! TESTS DIVERS
+    ! =======================================================================================================
 
     ! -------------------------------------------------------------------------------------------------------
     ! Force de tension de surface idem akinci mais avec juste F_cohesion
@@ -184,13 +188,13 @@ contains
         F = 0.0_rp
         do j = 1, i - 1
             if (fnorme2(part%x(i, :) - part%x(j, :)) <= part%R) then
-                F = F + y * part%w(i) * part%R * C_Akinci(fnorme2(part%x(i, :) - part%x(j, :)), part%R) &
+                F = F + y * part%w(i) * part%R * C_akinci(fnorme2(part%x(i, :) - part%x(j, :)), part%R) &
                     * (part%x(i, :) - part%x(j, :)) / fnorme2(part%x(i, :) - part%x(j, :))
             end if
         end do
         do j = i + 1, part%n
             if (fnorme2(part%x(i, :) - part%x(j, :)) <= part%R) then
-                F = F + y * part%w(i) * part%R * C_Akinci(fnorme2(part%x(i, :) - part%x(j, :)), part%R) &
+                F = F + y * part%w(i) * part%R * C_akinci(fnorme2(part%x(i, :) - part%x(j, :)), part%R) &
                     * (part%x(i, :) - part%x(j, :)) / fnorme2(part%x(i, :) - part%x(j, :))
             end if
         end do
