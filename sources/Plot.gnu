@@ -1,3 +1,14 @@
+set term postscript eps enhanced color solid size 3.5,2.62 font 'Helvetica,12';
+set output "../graphes/cohesion.ps";
+set encoding utf8;
+set title "Force de cohésion de J. Kordilla"
+set xrange [0:1]
+set xlabel "||x_i - x||"
+set ylabel "C"
+set grid
+set border 19
+plot "../sorties/Ckordilla.dat" u 1:2 w l lc rgb "blue" title "C(||x_i - x||)"
+
 # ===========================================================================================================
 # réinitialisation des paramètres
 reset;
@@ -21,6 +32,7 @@ set border 16;
 # duo de couleurs
 set linetype 1 linecolor rgb "green"
 set linetype 2 linecolor rgb "red"
+
 
 
 if (d == 2) {

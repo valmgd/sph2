@@ -124,9 +124,9 @@ contains
     ! -------------------------------------------------------------------------------------------------------
     ! sigma : coeff de tension de surface (gamma)
     !function C_akinci(z, R_SPH) result(C)
-    subroutine F_ij_kordilla(sigma, R_SPH, i, j, part, F)
+    subroutine F_ij_kordilla(sigma, i, j, part, F)
         ! paramètres
-        real(rp), intent(in) :: sigma, R_SPH
+        real(rp), intent(in) :: sigma
         integer, intent(in) :: i, j
         type(Particules), intent(in) :: part
         real(rp), dimension(SPH_D), intent(out) :: F
@@ -144,24 +144,66 @@ contains
         r = part%x(i, :) - part%x(j, :)
         length = fnorme2(r)
 
-        if (length <= R_SPH) then
+        if (length <= part%R) then
             F = sigma * (A * W_kordilla(r, h1) * r / length + B * W_kordilla(r, h2) * r / length)
         else
             F = 0.0_rp
         end if
     end subroutine
 
+    !function C_akinci(z, R_SPH) result(C)
+    function C_kordilla(z, R_SPH, sigma) result(C)
+        ! paramètres
+        real(rp), intent(in) :: z, sigma, R_SPH
+
+        ! return
+        real(rp) :: C
+
+        ! variables locales
+        real(rp), dimension(SPH_D) :: F
+        real(rp) :: s_ff, A, B, h1, h2
+        real(rp), dimension(SPH_D) :: r
+        real(rp) :: length
+
+        A = 2.0_rp
+        B = -1.0_rp
+        h1 = 0.8_rp
+        h2 = 1.0_rp
+
+        r = (/ z, 0.0_rp /)
+        length = fnorme2(r)
+
+        if (length <= R_SPH) then
+            C = sigma * (A * W_kordilla(r/R_SPH, h1) * z / z + B * W_kordilla(r/R_SPH, h2) * z / z)
+        else
+            C = 0.0_rp
+        end if
+
+    end function
+
 
 
     ! -------------------------------------------------------------------------------------------------------
     ! force de tension de surface Kordilla
     ! -------------------------------------------------------------------------------------------------------
-    subroutine FTS_kordilla()
+    subroutine FTS_kordilla(sigma, i, part, F)
         ! paramètres
-        !++!
+        ! paramètres
+        real(rp), intent(in) :: sigma
+        integer, intent(in) :: i
+        type(Particules), intent(inout) :: part
+        real(rp), dimension(SPH_D), intent(out) :: F
 
         ! variables locales
-        !++!
+        real(rp), dimension(SPH_D) :: Fij
+        integer :: k, j
+
+        F = 0.0_rp
+
+        do j = 1, part%n
+            call F_ij_kordilla(sigma, i, j, part, F)
+            F = F + part%w(j) * Fij
+        end do
     end subroutine
 
 

@@ -30,6 +30,8 @@ PROGRAM main
     ! particules
     type(Particules) :: p
 
+    real(rp), dimension(1000) :: rr, Ck
+
 
 
     ! lecture du fichier d'entrée
@@ -56,10 +58,20 @@ PROGRAM main
 
     ! tension de surface
     call set_fts(FTS_akinci, DONNEES_SIGMA, p)
+    !call set_fts(FTS_kordilla, DONNEES_SIGMA, p)
 
     ! schéma SPH (équation 2)
     call iter_SPH(p, centre)
     call quarter(p, centre)
+
+
+    p%R = 1.0_rp
+    rr = linspace(0.0_rp, p%R, 1000)
+    do i = 1, 1000
+        Ck(i) = C_kordilla(rr(i), p%R, DONNEES_SIGMA)
+    end do
+    call saveSol(rr, -Ck, "../sorties/Ckordilla.dat")
+    print *, p%R
 
 
 
