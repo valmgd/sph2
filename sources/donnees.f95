@@ -1,13 +1,15 @@
 ! ===========================================================================================================
 ! Module contenant les fonctions suivantes :
 !
-! subroutine readValues(nom_fichier, d_Omega, intervalle, n, bornes, centre, rayon)
-! subroutine init_var_bulle(centreBulle, rayonBulle, part)
-! subroutine init_var_pave(bornes, part)
-! subroutine write_var(part, f_rho, f_u, f_P)
-! subroutine pave(d_Omega, n, bornes, nom_fichier, part)
-! subroutine bulle(d_Omega, n, centre, rayon, nom_fichier, part)
-! subroutine normale_surface_GR(part, nom_fichier)
+!   subroutine set_DONNEES_SIGMA(valeur)
+!   subroutine readValues(nom_fichier, d_Omega, sigma, intervalle, n, bornes, centre, rayon)
+!   subroutine init_var_bulle(centreBulle, rayonBulle, part)
+!   subroutine init_var_pave(bornes, part)
+!   subroutine write_var(part, f_rho, f_u, f_P)
+!   subroutine pave(d_Omega, n, bornes, nom_fichier, part)
+!   subroutine bulle(d_Omega, n, centre, rayon, nom_fichier, part)
+!   subroutine normale_surface_GR(part, nom_fichier)
+!   subroutine quarter(part, centre)
 ! ===========================================================================================================
 
 MODULE donnees
@@ -21,6 +23,7 @@ MODULE donnees
     real(rp), save :: DONNEES_SIGMA
 
 contains
+
     subroutine set_DONNEES_SIGMA(valeur)
         ! paramètres
         real(rp), intent(in) :: valeur

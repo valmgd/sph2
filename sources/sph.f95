@@ -7,6 +7,22 @@
 ! de la dimension. Elles sont ainsi calculées une seule fois. L'astuce est la suivante :
 !
 ! a**(3-d) * b**(d-2) = {a si d == 2, b si d == 3}
+!
+!   subroutine rm_Particules(part)
+!   subroutine meshgrid(xyz, x)
+!   subroutine meshCircle(d_Omega, centre, rayon, n_diametre, x)
+!   subroutine dx_W_SPH(z, R, grad)
+!   subroutine AR(i, part, f, image)
+!   subroutine GR(i, part, f, image)
+!   subroutine GR_m(i, part, f, image)
+!   subroutine GR_p(i, part, f, image)
+!   subroutine set_gradR(part)
+!   subroutine FTS_akinci(sigma, i, part, F)
+!   subroutine set_fts(FTS_func, sigma, part)
+!   subroutine F_pp_kordilla(y, R_SPH, i, j, x, F)
+!   subroutine F_TS_kordilla()
+!   subroutine F_TS_cohesion(y, i, part, F)
+!   subroutine iter_SPH(part, centre)
 ! ===========================================================================================================
 
 MODULE sph
@@ -367,6 +383,48 @@ contains
 
 
 
+    ! -------------------------------------------------------------------------------------------------------
+    ! Divergence régularisée
+    ! Trois approximations différentes de la divergence de f en x_i (DR, DR_m et DR_p)
+    ! -------------------------------------------------------------------------------------------------------
+    subroutine DR(i, part, f, image)
+        ! paramètres
+        integer, intent(in) :: i
+        type(Particules), intent(in) :: part
+        real(rp), dimension(:), intent(in) :: f
+        real(rp), dimension(SPH_D), intent(out) :: image
+
+        ! variables locales
+        integer :: j
+        real(rp), dimension(SPH_D) :: grad
+    end subroutine
+
+    subroutine DR_m(i, part, f, image)
+        ! paramètres
+        integer, intent(in) :: i
+        type(Particules), intent(in) :: part
+        real(rp), dimension(:), intent(in) :: f
+        real(rp), dimension(SPH_D), intent(out) :: image
+
+        ! variables locales
+        integer :: j
+        real(rp), dimension(SPH_D) :: grad
+    end subroutine
+
+    subroutine DR_p(i, part, f, image)
+        ! paramètres
+        integer, intent(in) :: i
+        type(Particules), intent(in) :: part
+        real(rp), dimension(:), intent(in) :: f
+        real(rp), dimension(SPH_D), intent(out) :: image
+
+        ! variables locales
+        integer :: j
+        real(rp), dimension(SPH_D) :: grad
+    end subroutine
+
+
+
     ! =======================================================================================================
     ! TENSION SUPERFICIELLE
     ! =======================================================================================================
@@ -441,12 +499,14 @@ contains
         ! paramètres
         real(rp), intent(in) :: sigma
         integer, intent(in) :: i
-        type(Particules), intent(in) :: part
+        type(Particules), intent(inout) :: part
         real(rp), dimension(SPH_D), intent(out) :: F
 
         ! variables locales
         real(rp), dimension(SPH_D) :: ni, nj
         integer :: k, j
+
+        call set_gradR(part)
 
         F = 0.0_rp
         do j = 1, i - 1
@@ -480,7 +540,7 @@ contains
                 use var
                 real(rp), intent(in) :: sigma_
                 integer, intent(in) :: i_
-                type(Particules), intent(in) :: part_
+                type(Particules), intent(inout) :: part_
                 real(rp) :: part
                 real(rp), dimension(SPH_D), intent(out) :: F
             end subroutine
@@ -615,7 +675,7 @@ contains
     ! =======================================================================================================
 
     ! -------------------------------------------------------------------------------------------------------
-    ! ressemble à une itération en temps de l'une des équation du schéma SPH
+    ! une itération du schéma SPH
     ! -------------------------------------------------------------------------------------------------------
     subroutine iter_SPH(part, centre)
         ! paramètres
@@ -636,7 +696,7 @@ contains
             call prodScal(part%x(i, :) - centre, d_rwu_dt(i, :), prod)
             plot_vec(i, :) = (/ part%x(i, :), d_rwu_dt(i, :), prod /)
         end do
-        !print *, "sum_i [ w_i GR_p(P)_i + (FTS)_i ] =", sum(d_rwu_dt(:, 1)), sum(d_rwu_dt(:, 2))
+        !print *, "sum_i [ -w_i GR_p(P)_i + (FTS)_i ] =", sum(d_rwu_dt(:, 1)), sum(d_rwu_dt(:, 2))
         !print *, sum(d_rwu_dt(:, 1)), sum(d_rwu_dt(:, 2))
         !call affMat(d_rwu_dt)
 

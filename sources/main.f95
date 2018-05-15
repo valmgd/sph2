@@ -24,7 +24,7 @@ PROGRAM main
     real(rp), dimension(:, :), allocatable :: bornes
     ! pour une bulle
     real(rp), dimension(:), allocatable :: centre
-    real(rp) :: rayon, intervalle, sigma
+    real(rp) :: rayon, intervalle, sigma, dt
 
     ! particules
     type(Particules) :: p
@@ -54,10 +54,10 @@ PROGRAM main
 
 
     ! tension de surface
-    call set_gradR(p)
     call set_fts(FTS_akinci, DONNEES_SIGMA, p)
 
     ! schéma SPH (équation 2)
+    dt = 0.1_rp
     call iter_SPH(p, centre)
     call quarter(p, centre)
 
