@@ -2,7 +2,7 @@
 #  variables
 # -----------------------------------------------------------------------------------------------------------
 # nom projet
-PROJECT = sph
+PROJECT = sph2
 
 #
 SOURCES = main.f95 donnees.f95 sph.f95 tsup.f95 var.f95 math.f95
