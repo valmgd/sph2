@@ -39,6 +39,7 @@ PROGRAM main
 
     ! choix du noyau SPH
     call set_W_SPH("wendland")
+    !call set_W_SPH("liu")
 
     ! création du maillage initial
     select case (choix)
@@ -61,7 +62,7 @@ PROGRAM main
 
     ! tension de surface
     call set_fts(FTS_akinci, DONNEES_SIGMA, p)
-    !call set_fts(FTS_kordilla, DONNEES_SIGMA, p)
+    !call set_fts(FTS_liu, DONNEES_SIGMA, p)
 
     ! schéma SPH (équation 2)
     call iter_SPH(p, centre)
@@ -72,7 +73,7 @@ PROGRAM main
     p%R = 1.0_rp
     rr = linspace(0.0_rp, p%R, 1000)
     do i = 1, 1000
-        Ck(i) = C_kordilla(rr(i), p%R, DONNEES_SIGMA)
+        Ck(i) = C_liu(rr(i), p%R)
         AW1(i) =  2.0_rp * W_SPH_liu((/ rr(i), 0.0_rp /), 0.8_rp * p%R)! / 9.5_rp
         BW2(i) = -1.0_rp * W_SPH_liu((/ rr(i), 0.0_rp /), 1.0_rp * p%R)! / 5.0_rp
     end do
