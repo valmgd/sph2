@@ -69,6 +69,7 @@ PROGRAM main
     call quarter(p, centre)
 
 
+    print *, "# dx", p%dx
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     p%R = 1.0_rp
     rr = linspace(0.0_rp, p%R, 1000)
@@ -80,7 +81,7 @@ PROGRAM main
     call saveSol(rr, Ck, "../sorties/Ckordilla.dat")
     call saveSol(rr, AW1, "../sorties/AW1.dat")
     call saveSol(rr, BW2, "../sorties/BW2.dat")
-    print *, p%R
+    print *, "# R", p%R
 
 
 

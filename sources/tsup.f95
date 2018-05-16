@@ -59,11 +59,11 @@ contains
         if (fnorme2(part%x(i, :) - part%x(j, :)) <= part%R) then
             ! cohesion force
             !TODO : vérifier si il y a un moins devant le sigma
-            F = sigma * part%w(i) * part%R * C_akinci(fnorme2(part%x(i, :) - part%x(j, :)), part%R) &
+            F = -sigma * part%w(i) * part%R * C_akinci(fnorme2(part%x(i, :) - part%x(j, :)), part%R) &
                 * (part%x(i, :) - part%x(j, :)) / fnorme2(part%x(i, :) - part%x(j, :))
 
             ! curvature force
-            F = F + sigma * part%R * (part%gradR(i, :) - part%gradR(j, :))
+            F = F - sigma * part%R * (part%gradR(i, :) - part%gradR(j, :))
         else
             F = 0.0_rp
         end if
