@@ -111,7 +111,7 @@ clean :
 # effacer le contenu des dossiers d'entrees et de sorties
 .PHONY : del
 del :
-	rm -f ../sorties/* ../graphes/*
+	rm -f ../sorties/*.dat ../graphes/*.eps ../graphes/*.ps ../graphes/*.png
 
 # ouvrir les fichiers du projet dans des onglets de vim
 .PHONY : open

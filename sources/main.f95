@@ -73,8 +73,8 @@ PROGRAM main
     rr = linspace(0.0_rp, p%R, 1000)
     do i = 1, 1000
         Ck(i) = C_kordilla(rr(i), p%R, DONNEES_SIGMA)
-        AW1(i) =  2.0_rp * W_SPH_tartakovsky((/ rr(i), 0.0_rp /), 0.8_rp * p%R)! / 9.5_rp
-        BW2(i) = -1.0_rp * W_SPH_tartakovsky((/ rr(i), 0.0_rp /), 1.0_rp * p%R)! / 5.0_rp
+        AW1(i) =  2.0_rp * W_SPH_liu((/ rr(i), 0.0_rp /), 0.8_rp * p%R)! / 9.5_rp
+        BW2(i) = -1.0_rp * W_SPH_liu((/ rr(i), 0.0_rp /), 1.0_rp * p%R)! / 5.0_rp
     end do
     call saveSol(rr, Ck, "../sorties/Ckordilla.dat")
     call saveSol(rr, AW1, "../sorties/AW1.dat")

@@ -47,6 +47,30 @@ contains
 
 
     ! -------------------------------------------------------------------------------------------------------
+    ! Force de cohésion des particules i <- j
+    ! -------------------------------------------------------------------------------------------------------
+    subroutine F_ij_akinci(sigma, i, j, part, F)
+        ! paramètres
+        real(rp), intent(in) :: sigma
+        integer, intent(in) :: i, j
+        type(Particules), intent(in) :: part
+        real(rp), dimension(SPH_D), intent(out) :: F
+
+        if (fnorme2(part%x(i, :) - part%x(j, :)) <= part%R) then
+            ! cohesion force
+            F = sigma * part%w(i) * part%R * C_akinci(fnorme2(part%x(i, :) - part%x(j, :)), part%R) &
+                * (part%x(i, :) - part%x(j, :)) / fnorme2(part%x(i, :) - part%x(j, :))
+
+            ! curvature force
+            F = F + sigma * part%R * (part%gradR(i, :) - part%gradR(j, :))
+        else
+            F = 0.0_rp
+        end if
+    end subroutine
+
+
+
+    ! -------------------------------------------------------------------------------------------------------
     ! Force de tension de surface solver SPH
     ! -------------------------------------------------------------------------------------------------------
     ! sigma : coefficient de tension de surface (gamma)
@@ -142,6 +166,7 @@ contains
 
         if (length <= R_SPH) then
             C = sigma * (A * W_SPH_tartakovsky(r, h1) * z / z + B * W_SPH_tartakovsky(r, h2) * z / z)
+            C = sigma * (A * W_SPH_liu(r, h1) * z / z + B * W_SPH_liu(r, h2) * z / z)
         else
             C = 0.0_rp
         end if
