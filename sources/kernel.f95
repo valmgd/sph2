@@ -217,6 +217,30 @@ contains
         ! variables locales
         real(rp) :: length
 
+        length = fnorme2(x)
+
+        if ((0.0_rp <= length) .and. (length < R / 2.0_rp)) then
+            W = 1.0_rp - 1.5_rp * (2.0_rp*length/R)**2 + 0.75_rp * (2.0_rp*length/R)**3
+        else if ((R / 2.0_rp <= length) .and. (length < R)) then
+            W = 0.25_rp * (2.0_rp - 2.0_rp*length/R)**3
+        else
+            W = 0.0_rp
+        end if
     end function
+
+    ! -------------------------------------------------------------------------------------------------------
+    ! Gradient en x de W(x, y, R) = W(x - y, R)
+    ! -------------------------------------------------------------------------------------------------------
+    ! z : élt de R**2 (en pratique coordonnées d'une particule)
+    ! R : rayon SPH
+    ! grad : résultat (R**2)
+    subroutine dx_W_SPH_liu(z, R, grad)
+        ! paramètres
+        real(rp), dimension(SPH_D), intent(in) :: z
+        real(rp), intent(in) :: R
+        real(rp), dimension(SPH_D), intent(out) :: grad
+
+        ! variables locales
+    end subroutine
 
 END MODULE kernel
