@@ -11,7 +11,7 @@
 
 MODULE tsup
 
-    use var
+    use kernel
 
     implicit none
 
@@ -32,11 +32,11 @@ contains
         real(rp) :: C
 
         if ((0.0_rp < z) .and. (z <= R_SPH / 2.0_rp)) then
-            C = SPH_C_NORM_AKINCI * (32.0_rp / (pi * R_SPH**SPH_D * R_SPH**6)) * &
+            C = SPH_NORM_COHESION_AKINCI * (32.0_rp / (pi * R_SPH**SPH_D * R_SPH**6)) * &
                 (2.0_rp * (R_SPH - z)**3 * z**3 - R_SPH**6 / 64.0_rp)
 
         else if ((R_SPH / 2.0_rp < z) .and. (z <= R_SPH)) then
-            C = SPH_C_NORM_AKINCI * (32.0_rp / (pi * R_SPH**SPH_D * R_SPH**6)) * &
+            C = SPH_NORM_COHESION_AKINCI * (32.0_rp / (pi * R_SPH**SPH_D * R_SPH**6)) * &
                 (R_SPH - z)**3 * z**3
 
         else
@@ -87,39 +87,6 @@ contains
     ! =======================================================================================================
 
     ! -------------------------------------------------------------------------------------------------------
-    ! noyau Kordilla
-    ! -------------------------------------------------------------------------------------------------------
-    function W_kordilla(x, R) result(W)
-        ! paramètres
-        real(rp), dimension(SPH_D), intent(in) :: x
-        real(rp), intent(in) :: R
-
-        ! return
-        real(rp) :: W
-
-        ! variables locales
-        real(rp) :: length
-
-        length = fnorme2(x)
-
-        if ((0.0_rp <= length) .and. (length < R / 3.0_rp)) then
-            W = (3.0_rp - 3.0_rp * length / R)**5 - 6.0_rp * (2.0_rp - 3.0_rp * length / R)**5 &
-                + 15.0_rp * (1.0_rp - 3.0_rp * length / R)**5
-            W = W * (81.0_rp / (359.0_rp * pi * R**3.0_rp))
-        else if ((R / 3.0_rp < length) .and. (length < 2.0_rp * R / 3.0_rp)) then
-            W = (3.0_rp - 3.0_rp * length / R)**5 - 6.0_rp * (2.0_rp - 3.0_rp * length / R)**5
-            W = W * (81.0_rp / (359.0_rp * pi * R**3.0_rp))
-        else if ((2.0_rp * R / 3.0_rp <= length) .and. (length < R)) then
-            W = (3.0_rp - 3.0_rp * length / R)**5
-            W = W * (81.0_rp / (359.0_rp * pi * R**3.0_rp))
-        else
-            W = 0.0_rp
-        end if
-    end function
-
-
-
-    ! -------------------------------------------------------------------------------------------------------
     ! Force d'une particule sur une autre (Kordilla) cohésion ?
     ! -------------------------------------------------------------------------------------------------------
     ! sigma : coeff de tension de surface (gamma)
@@ -138,14 +105,14 @@ contains
 
         A = 2.0_rp
         B = -1.0_rp
-        h1 = 0.8_rp
-        h2 = 1.0_rp
+        h1 = 0.8_rp * part%R
+        h2 = 1.0_rp * part%R
 
         r = part%x(i, :) - part%x(j, :)
         length = fnorme2(r)
 
         if (length <= part%R) then
-            F = sigma * (A * W_kordilla(r, h1) * r / length + B * W_kordilla(r, h2) * r / length)
+            F = sigma * (A * W_SPH_tartakovsky(r, h1) * r / length + B * W_SPH_tartakovsky(r, h2) * r / length)
         else
             F = 0.0_rp
         end if
@@ -167,14 +134,14 @@ contains
 
         A = 2.0_rp
         B = -1.0_rp
-        h1 = 0.8_rp
-        h2 = 1.0_rp
+        h1 = 0.8_rp * R_SPH
+        h2 = 1.0_rp * R_SPH
 
         r = (/ z, 0.0_rp /)
         length = fnorme2(r)
 
         if (length <= R_SPH) then
-            C = sigma * (A * W_kordilla(r/R_SPH, h1) * z / z + B * W_kordilla(r/R_SPH, h2) * z / z)
+            C = sigma * (A * W_SPH_tartakovsky(r, h1) * z / z + B * W_SPH_tartakovsky(r, h2) * z / z)
         else
             C = 0.0_rp
         end if
@@ -258,7 +225,6 @@ contains
         ! paramètres
         interface
             subroutine FTS_func(sigma_, i_, part_, F)
-                use math
                 use var
                 real(rp), intent(in) :: sigma_
                 integer, intent(in) :: i_

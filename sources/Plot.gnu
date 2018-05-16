@@ -3,11 +3,14 @@ set output "../graphes/cohesion.ps";
 set encoding utf8;
 set title "Force de cohésion de J. Kordilla"
 set xrange [0:1]
+#set yrange [-1:2]
 set xlabel "||x_i - x||"
 set ylabel "C"
 set grid
 set border 19
-plot "../sorties/Ckordilla.dat" u 1:2 w l lc rgb "blue" title "C(||x_i - x||)"
+plot "../sorties/Ckordilla.dat" u 1:2 w l lc rgb "blue" lw 3 title "C(||x_i - x||)", \
+     "../sorties/AW1.dat" u 1:2 w l lc rgb "green" title "AW_1", \
+     "../sorties/BW2.dat" u 1:2 w l lc rgb "red" title "BW_2"
 
 # ===========================================================================================================
 # réinitialisation des paramètres

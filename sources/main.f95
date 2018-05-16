@@ -30,12 +30,15 @@ PROGRAM main
     ! particules
     type(Particules) :: p
 
-    real(rp), dimension(1000) :: rr, Ck
+    real(rp), dimension(1000) :: rr, Ck, AW1, BW2
 
 
 
     ! lecture du fichier d'entrée
     call readValues("../entrees/constantes", d_Omega, sigma, intervalle, n, bornes, centre, rayon)
+
+    ! choix du noyau SPH
+    call set_W_SPH("wendland")
 
     ! création du maillage initial
     select case (choix)
@@ -65,12 +68,17 @@ PROGRAM main
     call quarter(p, centre)
 
 
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     p%R = 1.0_rp
     rr = linspace(0.0_rp, p%R, 1000)
     do i = 1, 1000
         Ck(i) = C_kordilla(rr(i), p%R, DONNEES_SIGMA)
+        AW1(i) =  2.0_rp * W_SPH_tartakovsky((/ rr(i), 0.0_rp /), 0.8_rp * p%R)! / 9.5_rp
+        BW2(i) = -1.0_rp * W_SPH_tartakovsky((/ rr(i), 0.0_rp /), 1.0_rp * p%R)! / 5.0_rp
     end do
-    call saveSol(rr, -Ck, "../sorties/Ckordilla.dat")
+    call saveSol(rr, Ck, "../sorties/Ckordilla.dat")
+    call saveSol(rr, AW1, "../sorties/AW1.dat")
+    call saveSol(rr, BW2, "../sorties/BW2.dat")
     print *, p%R
 
 

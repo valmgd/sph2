@@ -5,7 +5,7 @@
 PROJECT = sph2
 
 #
-SOURCES = main.f95 donnees.f95 sph.f95 tsup.f95 var.f95 math.f95
+SOURCES = main.f95 donnees.f95 sph.f95 tsup.f95 kernel.f95 var.f95 math.f95
 
 OBJ_DIR = ../objets
 RUN_DIR = ../run
@@ -29,6 +29,7 @@ PDF     =
 # exécutable
 $(RUN_DIR)/$(EXEC) : $(OBJ_DIR)/math.o \
 					 $(OBJ_DIR)/var.o \
+					 $(OBJ_DIR)/kernel.o \
 					 $(OBJ_DIR)/tsup.o \
 					 $(OBJ_DIR)/sph.o \
 					 $(OBJ_DIR)/donnees.o \
@@ -41,6 +42,7 @@ $(RUN_DIR)/$(EXEC) : $(OBJ_DIR)/math.o \
 $(OBJ_DIR)/main.o : main.f95 \
 	                $(OBJ_DIR)/math.mod \
 					$(OBJ_DIR)/var.mod \
+					 $(OBJ_DIR)/kernel.mod \
 					 $(OBJ_DIR)/tsup.mod \
 					$(OBJ_DIR)/sph.mod \
 					$(OBJ_DIR)/donnees.mod
@@ -59,10 +61,17 @@ $(OBJ_DIR)/var.o $(OBJ_DIR)/var.mod : var.f95 \
 	$(FC) $(FLAGS) -c var.f95 -o $(OBJ_DIR)/var.o
 
 
+$(OBJ_DIR)/kernel.o $(OBJ_DIR)/kernel.mod : kernel.f95 \
+	                                        $(OBJ_DIR)/math.mod \
+											$(OBJ_DIR)/var.mod
+	$(FC) $(FLAGS) -c kernel.f95 -o $(OBJ_DIR)/kernel.o
+
+
 
 $(OBJ_DIR)/tsup.o $(OBJ_DIR)/tsup.mod : tsup.f95 \
 	                                  $(OBJ_DIR)/math.mod \
-									  $(OBJ_DIR)/var.mod
+									  $(OBJ_DIR)/var.mod \
+									  $(OBJ_DIR)/kernel.mod
 	$(FC) $(FLAGS) -c tsup.f95 -o $(OBJ_DIR)/tsup.o
 
 
@@ -70,6 +79,7 @@ $(OBJ_DIR)/tsup.o $(OBJ_DIR)/tsup.mod : tsup.f95 \
 $(OBJ_DIR)/sph.o $(OBJ_DIR)/sph.mod : sph.f95 \
 	                                  $(OBJ_DIR)/math.mod \
 									  $(OBJ_DIR)/var.mod \
+									  $(OBJ_DIR)/kernel.mod \
 									  $(OBJ_DIR)/tsup.mod
 	$(FC) $(FLAGS) -c sph.f95 -o $(OBJ_DIR)/sph.o
 
@@ -78,6 +88,7 @@ $(OBJ_DIR)/sph.o $(OBJ_DIR)/sph.mod : sph.f95 \
 $(OBJ_DIR)/donnees.o $(OBJ_DIR)/donnees.mod : donnees.f95 \
 	                                          $(OBJ_DIR)/math.mod \
 											  $(OBJ_DIR)/var.mod \
+									          $(OBJ_DIR)/kernel.mod \
 											  $(OBJ_DIR)/tsup.mod \
 											  $(OBJ_DIR)/sph.mod
 	$(FC) $(FLAGS) -c donnees.f95 -o $(OBJ_DIR)/donnees.o
