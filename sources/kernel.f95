@@ -1,5 +1,7 @@
 ! ===========================================================================================================
 ! Noyaux SPH
+! Définition de différent noyau SPH et de leur gradient. Contient deux pointeurs sur fonctions, globaux au
+! module sph, et un "seter" pour choisir le noyau voulu au début du code.
 !
 !   subroutine set_W_SPH(choix)
 !   function theta(q)
@@ -46,6 +48,7 @@ contains
     ! choix : chaîne de caractère parmi :
     !         - "wendland"
     !         - "tartakovsky"
+    !         - "liu"
     subroutine set_W_SPH(choix)
         ! paramètres
         character(len=*), intent(in) :: choix

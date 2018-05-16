@@ -105,6 +105,9 @@ contains
     ! TENSION SUPERFICIELLE LIU
     ! =======================================================================================================
 
+    ! -------------------------------------------------------------------------------------------------------
+    ! noyau de cohésion Liu
+    ! -------------------------------------------------------------------------------------------------------
     function C_liu(z, R_SPH) result(C)
         ! paramètres
         real(rp), intent(in) :: z, R_SPH
@@ -135,10 +138,9 @@ contains
     end function
 
     ! -------------------------------------------------------------------------------------------------------
-    ! Force d'une particule sur une autre (Kordilla) cohésion ?
+    ! Force de cohésion d'une particule sur une autre (Liu, puis repris par Kordilla)
     ! -------------------------------------------------------------------------------------------------------
     ! sigma : coeff de tension de surface (gamma)
-    !function C_akinci(z, R_SPH) result(C)
     subroutine F_ij_liu(sigma, i, j, part, F)
         ! paramètres
         real(rp), intent(in) :: sigma
@@ -185,7 +187,11 @@ contains
 
         F = 0.0_rp
 
-        do j = 1, part%n
+        do j = 1, i - 1
+            call F_ij_liu(sigma, i, j, part, F)
+            F = F + part%w(j) * Fij
+        end do
+        do j = i + 1, part%n
             call F_ij_liu(sigma, i, j, part, F)
             F = F + part%w(j) * Fij
         end do
