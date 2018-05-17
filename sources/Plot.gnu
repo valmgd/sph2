@@ -1,7 +1,7 @@
 set term postscript eps enhanced color solid size 3.5,2.62 font 'Helvetica,12';
 set output "../graphes/cohesion.ps";
 set encoding utf8;
-set title "Force de cohésion de J. Kordilla"
+set title "Noyau de cohésion de J. Kordilla"
 set xrange [0:1]
 #set yrange [-1:2]
 set xlabel "||x_i - x||"
@@ -12,6 +12,17 @@ plot "../sorties/Ckordilla.dat" u 1:2 w l lc rgb "blue" lw 3 title "C(||x_i - x|
      "../sorties/AW1.dat" u 1:2 w l lc rgb "green" title "AW_1", \
      "../sorties/BW2.dat" u 1:2 w l lc rgb "red" title "BW_2"
 
+set term postscript eps enhanced color solid size 3.5,2.62 font 'Helvetica,12';
+set output "../graphes/cohesion_akinci.ps";
+set encoding utf8;
+set title "Noyau de cohésion de N. Akinci 2D"
+set xrange [0:1]
+#set yrange [-1:2]
+set xlabel "||x_i - x||"
+set ylabel ""
+set grid
+set border 19
+plot "../sorties/Cakinci.dat" u 1:2 w l lc rgb "blue" lw 3 title "C(x_i - x)"
 # ===========================================================================================================
 # réinitialisation des paramètres
 reset;

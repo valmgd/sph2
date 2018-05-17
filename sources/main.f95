@@ -69,19 +69,24 @@ PROGRAM main
     call quarter(p, centre)
 
 
-    print *, "# dx", p%dx
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    print *, "# dx", p%dx
     p%R = 1.0_rp
-    rr = linspace(0.0_rp, p%R, 1000)
+    rr = linspace(0.0_rp, 1.0_rp, 1000)
     do i = 1, 1000
         Ck(i) = C_liu(rr(i), p%R)
-        AW1(i) =  2.0_rp * W_SPH_liu((/ rr(i), 0.0_rp /), 0.8_rp * p%R)! / 9.5_rp
-        BW2(i) = -1.0_rp * W_SPH_liu((/ rr(i), 0.0_rp /), 1.0_rp * p%R)! / 5.0_rp
+        AW1(i) =  2.0_rp * W_SPH_liu((/ rr(i), 0.0_rp /), 0.8_rp * p%R)
+        BW2(i) = -1.0_rp * W_SPH_liu((/ rr(i), 0.0_rp /), 1.0_rp * p%R)
     end do
     call saveSol(rr, Ck, "../sorties/Ckordilla.dat")
     call saveSol(rr, AW1, "../sorties/AW1.dat")
     call saveSol(rr, BW2, "../sorties/BW2.dat")
     print *, "# R", p%R
+
+    do i = 1, 1000
+        Ck(i) = C_akinci(rr(i), p%R)
+    end do
+    call saveSol(rr, Ck, "../sorties/Cakinci.dat")
 
 
 

@@ -58,9 +58,9 @@ contains
         SPH_NORM_NOYAU_WENDLAND    =                  7.0_rp**(3-SPH_D) *                 14.0_rp**(SPH_D-2)
         SPH_VOLUME_SUPP_WENDLAND   =                      pi**(3-SPH_D) *      (4.0_rp*pi/3.0_rp)**(SPH_D-2)
 
-        SPH_NORM_NOYAU_TARTAKOVSKY = (63.0_rp/(478.0_rp*pi))**(3-SPH_D) * (81.0_rp/(359.0_rp*pi))**(SPH_D-2)
+        SPH_NORM_NOYAU_TARTAKOVSKY =   (63.0_rp/478.0_rp/pi)**(3-SPH_D) *   (81.0_rp/359.0_rp/pi)**(SPH_D-2)
 
-        SPH_NORM_COHESION_AKINCI   =     (417.0_rp/370.0_rp)**(3-SPH_D) *                  1.0_rp**(SPH_D-2)
+        SPH_NORM_COHESION_AKINCI   = (6672.0_rp/185.0_rp/pi)**(3-SPH_D) *            (32.0_rp/pi)**(SPH_D-2)
     end subroutine
 
     subroutine set_SPH_I(valeur)

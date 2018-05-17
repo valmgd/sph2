@@ -24,20 +24,19 @@ contains
     ! -------------------------------------------------------------------------------------------------------
     ! Noyau cohésion pour tension de surface (cf C(r) Akinci p. 3)
     ! -------------------------------------------------------------------------------------------------------
-    function C_akinci(z, R_SPH) result(C)
+    function C_akinci(q, R_SPH) result(C)
         ! paramètres
-        real(rp), intent(in) :: z, R_SPH
+        real(rp), intent(in) :: q, R_SPH
 
         ! return
         real(rp) :: C
 
-        if ((0.0_rp < z) .and. (z <= R_SPH / 2.0_rp)) then
-            C = SPH_NORM_COHESION_AKINCI * (32.0_rp / (pi * R_SPH**SPH_D * R_SPH**6)) * &
-                (2.0_rp * (R_SPH - z)**3 * z**3 - R_SPH**6 / 64.0_rp)
+        if ((0.0_rp < q) .and. (q <= 0.5_rp)) then
+            C = (SPH_NORM_COHESION_AKINCI / R_SPH**SPH_D) * &
+                (2.0_rp * (1.0_rp - q)**3 * q**3 - 1.0_rp / 64.0_rp)
 
-        else if ((R_SPH / 2.0_rp < z) .and. (z <= R_SPH)) then
-            C = SPH_NORM_COHESION_AKINCI * (32.0_rp / (pi * R_SPH**SPH_D * R_SPH**6)) * &
-                (R_SPH - z)**3 * z**3
+        else if ((0.5_rp < q) .and. (q <= 1.0_rp)) then
+            C = (SPH_NORM_COHESION_AKINCI / R_SPH**SPH_D) * (1.0_rp - q)**3 * q**3
 
         else
             C = 0.0_rp
@@ -59,7 +58,7 @@ contains
         if (fnorme2(part%x(i, :) - part%x(j, :)) <= part%R) then
             ! cohesion force
             !TODO : vérifier si il y a un moins devant le sigma
-            F = -sigma * part%w(i) * part%R * C_akinci(fnorme2(part%x(i, :) - part%x(j, :)), part%R) &
+            F = -sigma * part%w(i) * part%R * C_akinci(fnorme2(part%x(i, :) - part%x(j, :)) / part%R, part%R) &
                 * (part%x(i, :) - part%x(j, :)) / fnorme2(part%x(i, :) - part%x(j, :))
 
             ! curvature force
@@ -108,9 +107,9 @@ contains
     ! -------------------------------------------------------------------------------------------------------
     ! noyau de cohésion Liu
     ! -------------------------------------------------------------------------------------------------------
-    function C_liu(z, R_SPH) result(C)
+    function C_liu(q, R_SPH) result(C)
         ! paramètres
-        real(rp), intent(in) :: z, R_SPH
+        real(rp), intent(in) :: q, R_SPH
 
         ! return
         real(rp) :: C
@@ -126,10 +125,10 @@ contains
         h1 = 0.8_rp * R_SPH
         h2 = 1.0_rp * R_SPH
 
-        r = (/ z, 0.0_rp /)
+        r = (/ q * R_SPH, 0.0_rp /)
         length = fnorme2(r)
 
-        if (length <= R_SPH) then
+        if (q <= 1.0_rp) then
             C = A * W_SPH_liu(r, h1) - B * W_SPH_liu(r, h2)
         else
             C = 0.0_rp
@@ -162,7 +161,7 @@ contains
         length = fnorme2(r)
 
         if (length <= part%R) then
-            F = sigma * (r / length) * C_liu(length, part%R)
+            F = sigma * (r / length) * C_liu(length / part%R, part%R)
         else
             F = 0.0_rp
         end if
@@ -222,13 +221,13 @@ contains
         F = 0.0_rp
         do j = 1, i - 1
             if (fnorme2(part%x(i, :) - part%x(j, :)) <= part%R) then
-                F = F + sigma * part%w(i) * part%R * C_akinci(fnorme2(part%x(i, :) - part%x(j, :)), part%R) &
+                F = F + sigma * part%w(i) * part%R * C_akinci(fnorme2(part%x(i, :) - part%x(j, :)) / part%R, part%R) &
                     * (part%x(i, :) - part%x(j, :)) / fnorme2(part%x(i, :) - part%x(j, :))
             end if
         end do
         do j = i + 1, part%n
             if (fnorme2(part%x(i, :) - part%x(j, :)) <= part%R) then
-                F = F + sigma * part%w(i) * part%R * C_akinci(fnorme2(part%x(i, :) - part%x(j, :)), part%R) &
+                F = F + sigma * part%w(i) * part%R * C_akinci(fnorme2(part%x(i, :) - part%x(j, :)) / part%R, part%R) &
                     * (part%x(i, :) - part%x(j, :)) / fnorme2(part%x(i, :) - part%x(j, :))
             end if
         end do
