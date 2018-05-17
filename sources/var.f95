@@ -17,13 +17,13 @@ MODULE var
     ! intervalle : R_SPH = SPH_I * dx
     real(rp), save :: SPH_I
 
-    ! constantes pour noyau SPH
+    ! constantes de normalisation pour noyaux SPH
     real(rp), save :: SPH_NORM_NOYAU_WENDLAND
     real(rp), save :: SPH_VOLUME_SUPP_WENDLAND
 
     real(rp), save :: SPH_NORM_NOYAU_TARTAKOVSKY
 
-    ! constantes pour fonction Akinci (tension de surface)
+    ! constante de normalisation pour noyau cohésion Akinci (tension de surface)
     real(rp), save :: SPH_NORM_COHESION_AKINCI
 
 
@@ -60,7 +60,7 @@ contains
 
         SPH_NORM_NOYAU_TARTAKOVSKY =   (63.0_rp/478.0_rp/pi)**(3-SPH_D) * (81.0_rp/359.0_rp/pi)**(SPH_D-2)
 
-        SPH_NORM_COHESION_AKINCI   = (6672.0_rp/185.0_rp/pi)**(3-SPH_D) *          (32.0_rp/pi)**(SPH_D-2)
+        SPH_NORM_COHESION_AKINCI   = (35690.0_rp/209.0_rp/pi)**(3-SPH_D) *          (32.0_rp/pi)**(SPH_D-2)
     end subroutine
 
     subroutine set_SPH_I(valeur)
