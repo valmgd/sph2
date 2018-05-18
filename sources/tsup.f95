@@ -203,33 +203,97 @@ contains
     ! =======================================================================================================
 
     ! -------------------------------------------------------------------------------------------------------
-    ! Force de tension de surface idem akinci mais avec juste F_cohesion
+    ! Noyau cohésion pour tension de surface (cf C(r) Akinci p. 3)
+    ! -------------------------------------------------------------------------------------------------------
+    function C_new_1(q, R_SPH) result(C)
+        ! paramètres
+        real(rp), intent(in) :: q, R_SPH
+
+        ! return
+        real(rp) :: C
+
+        ! variables locales
+        real(rp), save :: cste = -9185000000.0_rp
+        real(rp), save :: alpha = 0.33333_rp
+
+        if ((0.0_rp <= q) .and. (q <= 1.0_rp)) then
+            C = cste * (q - alpha * R_SPH) * (q - R_SPH)
+        else
+            C = 0.0_rp
+        end if
+    end function
+
+    function C_new_2(q, R_SPH) result(C)
+        ! paramètres
+        real(rp), intent(in) :: q, R_SPH
+
+        ! return
+        real(rp) :: C
+
+        ! variables locales
+        real(rp), save :: cste = -9185000000.0_rp
+        real(rp), save :: alpha = -0.3333333333_rp
+        real(rp), save :: beta = 0.3333333333_rp
+
+        if ((0.0_rp <= q) .and. (q <= 1.0_rp)) then
+            C = cste * (q - alpha * R_SPH) * (q - beta * R_SPH) * (q - R_SPH)
+        else
+            C = 0.0_rp
+        end if
+    end function
+
+
+
+    ! -------------------------------------------------------------------------------------------------------
+    ! Force de cohésion des particules i <- j
+    ! -------------------------------------------------------------------------------------------------------
+    subroutine F_ij_new(sigma, i, j, part, F)
+        ! paramètres
+        real(rp), intent(in) :: sigma
+        integer, intent(in) :: i, j
+        type(Particules), intent(in) :: part
+        real(rp), dimension(SPH_D), intent(out) :: F
+
+        if (fnorme2(part%x(i, :) - part%x(j, :)) <= part%R) then
+            ! cohesion force
+            !TODO : vérifier si il y a un moins devant le sigma
+            F = -sigma * part%w(i) * part%R * C_new_2(fnorme2(part%x(i, :) - part%x(j, :)) / part%R, part%R) &
+                * (part%x(i, :) - part%x(j, :)) / fnorme2(part%x(i, :) - part%x(j, :))
+
+            ! curvature force
+            !F = F - sigma * part%R * (part%gradR(i, :) - part%gradR(j, :))
+        else
+            F = 0.0_rp
+        end if
+    end subroutine
+
+
+
+    ! -------------------------------------------------------------------------------------------------------
+    ! Force de tension de surface solver SPH
     ! -------------------------------------------------------------------------------------------------------
     ! sigma : coefficient de tension de surface (gamma)
     ! i : numéro d'une particule
     ! part : liste des particules
-    subroutine F_TS_cohesion(sigma, i, part, F)
+    subroutine FTS_new(sigma, i, part, F)
         ! paramètres
         real(rp), intent(in) :: sigma
         integer, intent(in) :: i
-        type(Particules), intent(in) :: part
+        type(Particules), intent(inout) :: part
         real(rp), dimension(SPH_D), intent(out) :: F
 
         ! variables locales
+        real(rp), dimension(SPH_D) :: ni, nj, Fij
         integer :: k, j
 
         F = 0.0_rp
         do j = 1, i - 1
-            if (fnorme2(part%x(i, :) - part%x(j, :)) <= part%R) then
-                F = F + sigma * part%w(i) * part%R * C_akinci(fnorme2(part%x(i, :) - part%x(j, :)) / part%R, part%R) &
-                    * (part%x(i, :) - part%x(j, :)) / fnorme2(part%x(i, :) - part%x(j, :))
-            end if
+            call F_ij_new(sigma, i, j, part, Fij)
+            F = F + Fij
         end do
         do j = i + 1, part%n
-            if (fnorme2(part%x(i, :) - part%x(j, :)) <= part%R) then
-                F = F + sigma * part%w(i) * part%R * C_akinci(fnorme2(part%x(i, :) - part%x(j, :)) / part%R, part%R) &
-                    * (part%x(i, :) - part%x(j, :)) / fnorme2(part%x(i, :) - part%x(j, :))
-            end if
+            call F_ij_new(sigma, i, j, part, Fij)
+            F = F + Fij
         end do
     end subroutine
 

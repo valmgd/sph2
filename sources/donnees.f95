@@ -210,7 +210,8 @@ contains
         real(rp), dimension(100, d_Omega) :: cercle
 
         call meshCircle(d_Omega, centre, rayon, n, part%x)
-        dx = (part%x(2, 1) - part%x(1, 1))
+        !dx = (part%x(2, 1) - part%x(1, 1))
+        dx = 2.0_rp * rayon / real(n, rp)
         part%dx = dx
         part%n = size(part%x, 1)
         allocate(part%w(part%n), part%rho(part%n), part%u(part%n, d_Omega), part%P(part%n))
@@ -347,12 +348,14 @@ contains
         real(rp), dimension(2), intent(in) :: centre
 
         ! variables locales
-        real(rp), dimension(4, SPH_D) :: somme
+        real(rp), dimension(4, SPH_D) :: somme, fts, wGP
         integer :: i
         real(rp) :: temp
         real(rp), dimension(SPH_D) :: grad_pressure
 
         somme = 0.0_rp
+        fts = 0.0_rp
+        wGP = 0.0_rp
         temp = 0.5_rp * part%dx
 
         !do i = 1, part%n
@@ -373,18 +376,26 @@ contains
         do i = 1, part%n
             if ((part%x(i, 1) >= centre(1) - temp) .and. (part%x(i, 2) >= centre(2) - temp)) then
                 call GR_p(i, part, part%P, grad_pressure)
+                fts(1, :) = fts(1, :) + part%fts(i, :)
+                wGP(1, :) = wGP(1, :) + part%w(i) * grad_pressure
                 somme(1, :) = somme(1, :) - part%w(i) * grad_pressure + part%fts(i, :)
             end if
             if ((part%x(i, 1) <= centre(1) + temp) .and. (part%x(i, 2) >= centre(2) - temp)) then
                 call GR_p(i, part, part%P, grad_pressure)
+                fts(2, :) = fts(2, :) + part%fts(i, :)
+                wGP(2, :) = wGP(2, :) + part%w(i) * grad_pressure
                 somme(2, :) = somme(2, :) - part%w(i) * grad_pressure + part%fts(i, :)
             end if
             if ((part%x(i, 1) <= centre(1) + temp) .and. (part%x(i, 2) <= centre(2) + temp)) then
                 call GR_p(i, part, part%P, grad_pressure)
+                fts(3, :) = fts(3, :) + part%fts(i, :)
+                wGP(3, :) = wGP(3, :) + part%w(i) * grad_pressure
                 somme(3, :) = somme(3, :) - part%w(i) * grad_pressure + part%fts(i, :)
             end if
             if ((part%x(i, 1) >= centre(1) - temp) .and. (part%x(i, 2) <= centre(2) + temp)) then
                 call GR_p(i, part, part%P, grad_pressure)
+                fts(4, :) = fts(4, :) + part%fts(i, :)
+                wGP(4, :) = wGP(4, :) + part%w(i) * grad_pressure
                 somme(4, :) = somme(4, :) - part%w(i) * grad_pressure + part%fts(i, :)
             end if
         end do
@@ -395,10 +406,14 @@ contains
         print *, "__________________________________________________________________________________________&
             &_____________________________________"
         print *, "                                                                  |"
+        print *, "fts         ", fts(2, :),   " | ", "fts         ", fts(1, :)
+        print *, "wGP         ", wGP(2, :),   " | ", "wGP         ", wGP(1, :)
         print *, "top left    ", somme(2, :), " | ", "top right   ", somme(1, :)
         print *, "__________________________________________________________________|_______________________&
             &_____________________________________"
         print *, "                                                                  |"
+        print *, "fts         ", fts(3, :),   " | ", "fts         ", fts(4, :)
+        print *, "wGP         ", wGP(3, :),   " | ", "wGP         ", wGP(4, :)
         print *, "bottom left ", somme(3, :), " | ", "bottom right", somme(4, :)
         print *, "__________________________________________________________________|_______________________&
             &_____________________________________"

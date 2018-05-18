@@ -61,12 +61,14 @@ PROGRAM main
 
 
     ! tension de surface
-    call set_fts(FTS_akinci, DONNEES_SIGMA, p)
+    !call set_fts(FTS_akinci, DONNEES_SIGMA, p)
     !call set_fts(FTS_liu, DONNEES_SIGMA, p)
+    call set_fts(FTS_new, DONNEES_SIGMA, p)
 
     ! schéma SPH (équation 2)
     call iter_SPH(p, centre)
     call quarter(p, centre)
+    print *, "np", p%n
 
 
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -87,6 +89,11 @@ PROGRAM main
         Ck(i) = C_akinci(rr(i), p%R)
     end do
     call saveSol(rr, Ck, "../sorties/Cakinci.dat")
+
+    do i = 1, 1000
+        Ck(i) = C_new_2(rr(i), p%R)
+    end do
+    call saveSol(rr, Ck, "../sorties/Cnew.dat")
 
 
 

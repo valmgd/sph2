@@ -60,7 +60,7 @@ contains
 
         SPH_NORM_NOYAU_TARTAKOVSKY =   (63.0_rp/478.0_rp/pi)**(3-SPH_D) * (81.0_rp/359.0_rp/pi)**(SPH_D-2)
 
-        SPH_NORM_COHESION_AKINCI   = (35690.0_rp/209.0_rp/pi)**(3-SPH_D) *          (32.0_rp/pi)**(SPH_D-2)
+        SPH_NORM_COHESION_AKINCI   = (6672.0_rp/185.0_rp/pi)**(3-SPH_D) *          (32.0_rp/pi)**(SPH_D-2)
     end subroutine
 
     subroutine set_SPH_I(valeur)
