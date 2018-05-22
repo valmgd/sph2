@@ -91,7 +91,7 @@ PROGRAM main
     call saveSol(rr, Ck, "../sorties/Cakinci.dat")
 
     do i = 1, 1000
-        Ck(i) = C_new_2(rr(i), p%R)
+        Ck(i) = C_new_3(rr(i), p%R)
     end do
     call saveSol(rr, Ck, "../sorties/Cnew.dat")
 

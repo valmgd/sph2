@@ -1,3 +1,4 @@
+reset;
 set term postscript eps enhanced color solid size 3.5,2.62 font 'Helvetica,12';
 set output "../graphes/cohesion.ps";
 set encoding utf8;
@@ -35,6 +36,9 @@ set ylabel ""
 set grid
 set border 19
 plot "../sorties/Cnew.dat" u 1:2 w l lc rgb "blue" lw 3 title "C(x_i - x)"
+
+
+
 # ===========================================================================================================
 # réinitialisation des paramètres
 reset;

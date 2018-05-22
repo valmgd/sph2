@@ -205,6 +205,7 @@ contains
     ! -------------------------------------------------------------------------------------------------------
     ! Noyau cohésion pour tension de surface (cf C(r) Akinci p. 3)
     ! -------------------------------------------------------------------------------------------------------
+    ! polynomes de degré 2 et 3
     function C_new_1(q, R_SPH) result(C)
         ! paramètres
         real(rp), intent(in) :: q, R_SPH
@@ -242,6 +243,76 @@ contains
         end if
     end function
 
+    function C_new_3(q, R_SPH) result(C)
+        ! paramètres
+        real(rp), intent(in) :: q, R_SPH
+
+        ! return
+        real(rp) :: C
+
+        !C = 0.67_rp*q**3 - 1.51_rp*q**2 + 1.03_rp*q - 0.18_rp
+        C = 0.6666665624118165_rp*q**3 - 1.513333124823633_rp*q**2 + 1.0266665624118165_rp*q - 0.18_rp
+    end function
+
+    ! tests ressemblance fonction akinci
+    function C_new_4(q, R_SPH) result(C)
+        ! paramètres
+        real(rp), intent(in) :: q, R_SPH
+
+        ! return
+        real(rp) :: C
+
+        ! variables locales
+
+        C = 10.94_rp*q**4 - 21.17_rp*q**3 + 11.52_rp*q**2 - 1.12_rp*q - 0.18_rp
+    end function
+
+    !p(0) = -0.18
+    !p(0.27) = 0
+    !p(0.5) = 0.18
+    !p(1) = 0
+    !p'(0) = 0
+    !p'(0.5) = 0
+    !p'(1) = 0
+    function C_new_5(q, R_SPH) result(C)
+        ! paramètres
+        real(rp), intent(in) :: q, R_SPH
+
+        ! return
+        real(rp) :: C
+
+        ! variables locales
+
+        C = -28.56578847417548_rp*q**6 + 81.37736542252645_rp*q**5 - 77.71881254107033_rp*q**4 + &
+            25.208682711263233_rp*q**3 - 0.12144711854387105_rp*q**2 + 0.0_rp*q - 0.18_rp
+    end function
+
+    function C_new_7(q, R_SPH) result(C)
+        ! paramètres
+        real(rp), intent(in) :: q, R_SPH
+
+        ! return
+        real(rp) :: C
+
+        if ((0.0_rp <= q) .and. (q <= 1.0_rp/sqrt(2.0_rp))) then
+            C = sqrt(q) -0.18_rp
+        else if ((1.0_rp/sqrt(2.0_rp) <= q) .and. (q <= 1.0_rp)) then
+            C = -6.99313528071068_rp*q**5 + 174.83919617235026_rp*q**4 - 481.42706065296426_rp*q**3 &
+                + 504.05402149427505_rp*q**2 - 228.2179693155049_rp*q + 37.74494758255456_rp
+        end if
+    end function
+
+    ! tests spheric
+    function C_new_8(q, R_SPH) result(C)
+        ! paramètres
+        real(rp), intent(in) :: q, R_SPH
+
+        ! return
+        real(rp) :: C
+
+        ! variables locales
+    end function
+
 
 
     ! -------------------------------------------------------------------------------------------------------
@@ -257,7 +328,7 @@ contains
         if (fnorme2(part%x(i, :) - part%x(j, :)) <= part%R) then
             ! cohesion force
             !TODO : vérifier si il y a un moins devant le sigma
-            F = -sigma * part%w(i) * part%R * C_new_2(fnorme2(part%x(i, :) - part%x(j, :)) / part%R, part%R) &
+            F = -sigma * part%w(i) * part%R * C_new_3(fnorme2(part%x(i, :) - part%x(j, :)) / part%R, part%R) &
                 * (part%x(i, :) - part%x(j, :)) / fnorme2(part%x(i, :) - part%x(j, :))
 
             ! curvature force
