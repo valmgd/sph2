@@ -19,4 +19,4 @@
 0.0D0 0.0D0 0.0D0 ! centre bulle
 
 #rayon
-0.001D0             ! rayon bulle
+0.01D0             ! rayon bulle

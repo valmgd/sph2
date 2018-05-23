@@ -31,6 +31,7 @@ PROGRAM main
     type(Particules) :: p
 
     real(rp), dimension(1000) :: rr, Ck, AW1, BW2
+    real(rp), dimension(2) :: grad
 
 
 
@@ -91,9 +92,10 @@ PROGRAM main
     call saveSol(rr, Ck, "../sorties/Cakinci.dat")
 
     do i = 1, 1000
-        Ck(i) = C_new_3(rr(i), p%R)
+        Ck(i) = C_new_5(rr(i), p%R)
     end do
     call saveSol(rr, Ck, "../sorties/Cnew.dat")
+
 
 
 

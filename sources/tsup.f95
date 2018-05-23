@@ -62,7 +62,7 @@ contains
                 * (part%x(i, :) - part%x(j, :)) / fnorme2(part%x(i, :) - part%x(j, :))
 
             ! curvature force
-            F = F - sigma * part%R * (part%gradR(i, :) - part%gradR(j, :))
+            !F = F - sigma * part%R * (part%gradR(i, :) - part%gradR(j, :))
         else
             F = 0.0_rp
         end if
@@ -287,7 +287,7 @@ contains
             25.208682711263233_rp*q**3 - 0.12144711854387105_rp*q**2 + 0.0_rp*q - 0.18_rp
     end function
 
-    function C_new_7(q, R_SPH) result(C)
+    function C_new_6(q, R_SPH) result(C)
         ! paramètres
         real(rp), intent(in) :: q, R_SPH
 
@@ -303,7 +303,7 @@ contains
     end function
 
     ! tests spheric
-    function C_new_8(q, R_SPH) result(C)
+    function C_new_7(q, R_SPH) result(C)
         ! paramètres
         real(rp), intent(in) :: q, R_SPH
 
@@ -328,7 +328,7 @@ contains
         if (fnorme2(part%x(i, :) - part%x(j, :)) <= part%R) then
             ! cohesion force
             !TODO : vérifier si il y a un moins devant le sigma
-            F = -sigma * part%w(i) * part%R * C_new_3(fnorme2(part%x(i, :) - part%x(j, :)) / part%R, part%R) &
+            F = -sigma * part%w(i) * part%R * C_new_5(fnorme2(part%x(i, :) - part%x(j, :)) / part%R, part%R) &
                 * (part%x(i, :) - part%x(j, :)) / fnorme2(part%x(i, :) - part%x(j, :))
 
             ! curvature force
