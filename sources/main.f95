@@ -25,7 +25,7 @@ PROGRAM main
     real(rp), dimension(:, :), allocatable :: bornes
     ! pour une bulle
     real(rp), dimension(:), allocatable :: centre
-    real(rp) :: rayon, intervalle, sigma
+    real(rp) :: rayon, intervalle, sigma, t_start, t_end
 
     ! particules
     type(Particules) :: p
@@ -35,6 +35,8 @@ PROGRAM main
     real(rp), dimension(2) :: grad, point, centre1, centre2, x, y, somme
 
 
+
+    call cpu_time(t_start)
 
     ! lecture du fichier d'entrée
     call readValues("../entrees/constantes", d_Omega, sigma, intervalle, n, bornes, centre, rayon)
@@ -69,6 +71,9 @@ PROGRAM main
 
     ! schéma SPH (équation 2)
     call iter_SPH(p, centre)
+
+    call cpu_time(t_end)
+
     call quarter(p, centre)
     print *, "np", p%n
     print *, "R ", p%R
@@ -124,5 +129,6 @@ PROGRAM main
     call system("gnuplot ../sources/Plot.gnu")
     call rm_Particules(p)
     deallocate(bornes, centre)
+    write (*, '("### temps d''éxecution :",1F6.2)'), t_end - t_start
 
 END PROGRAM main
