@@ -65,9 +65,9 @@ PROGRAM main
 
 
     ! tension de surface
-    !call set_fts(FTS_akinci, DONNEES_SIGMA, p)
-    !call set_fts(FTS_liu, DONNEES_SIGMA, p)
-    call set_fts(FTS_new, DONNEES_SIGMA, p)
+    call set_fts(FTS_akinci, DONNEES_SIGMA, p)
+    ! call set_fts(FTS_liu, DONNEES_SIGMA, p)
+    ! call set_fts(FTS_new, DONNEES_SIGMA, p)
 
     ! schéma SPH (équation 2)
     call iter_SPH(p, centre)
@@ -98,7 +98,9 @@ PROGRAM main
 
 
 
+
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    ! affichage fonction cohésion
     print *, "# dx", p%dx
     p%R = 1.0_rp
     rr = linspace(0.0_rp, 1.0_rp, 1000)

@@ -44,6 +44,9 @@ MODULE var
         real(rp), dimension(:, :), allocatable :: gradR
         real(rp), dimension(:, :), allocatable :: fts
 
+        ! noyau
+        real(rp), dimension(:, :, :), allocatable :: dWij
+
         ! variables équations d'Euler
         real(rp), dimension(:), allocatable :: rho
         real(rp), dimension(:, :), allocatable :: u
@@ -92,6 +95,10 @@ contains
         end if
         if (allocated(part%fts)) then
             deallocate(part%fts)
+        end if
+
+        if (allocated(part%dWij)) then
+            deallocate(part%dWij)
         end if
 
         if (allocated(part%rho)) then

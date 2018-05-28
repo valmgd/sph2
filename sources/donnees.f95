@@ -148,7 +148,7 @@ contains
 
         part%n = size(part%x, 1)
         allocate(part%w(part%n), part%rho(part%n), part%u(part%n, d_Omega), part%P(part%n))
-        allocate(part%gradR(part%n, d_Omega), part%fts(part%n, d_Omega))
+        allocate(part%gradR(part%n, d_Omega), part%fts(part%n, d_Omega), part%dWij(part%n, part%n, SPH_D))
         part%w = dx**d_Omega
         part%R = SPH_I * dx
 
@@ -215,7 +215,7 @@ contains
         part%dx = dx
         part%n = size(part%x, 1)
         allocate(part%w(part%n), part%rho(part%n), part%u(part%n, d_Omega), part%P(part%n))
-        allocate(part%gradR(part%n, d_Omega), part%fts(part%n, d_Omega))
+        allocate(part%gradR(part%n, d_Omega), part%fts(part%n, d_Omega), part%dWij(part%n, part%n, SPH_D))
         part%w = dx**d_Omega
         part%R = SPH_I * dx
 
@@ -264,6 +264,7 @@ contains
         part%rho = 0.0_rp
         part%u = 0.0_rp
         part%P = 2.0_rp * DONNEES_SIGMA / rayonBulle
+        call set_dWij(part)
         call set_gradR(part)
     end subroutine
 
@@ -278,6 +279,7 @@ contains
         part%rho = 0.0_rp
         part%u = 0.0_rp
         part%P = 0.0_rp
+        call set_dWij(part)
         call set_gradR(part)
     end subroutine
 

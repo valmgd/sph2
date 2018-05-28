@@ -62,7 +62,7 @@ contains
                 * (part%x(i, :) - part%x(j, :)) / fnorme2(part%x(i, :) - part%x(j, :))
 
             ! curvature force
-            !F = F - sigma * part%R * (part%gradR(i, :) - part%gradR(j, :))
+            F = F - sigma * part%R * (part%gradR(i, :) - part%gradR(j, :))
         else
             F = 0.0_rp
         end if
@@ -384,17 +384,51 @@ contains
         type(Particules), intent(in) :: part
         real(rp), dimension(SPH_D), intent(out) :: F
 
-        if (fnorme2(part%x(i, :) - part%x(j, :)) <= part%R) then
-            ! cohesion force
-            !TODO : vérifier si il y a un moins devant le sigma
-            F = -sigma * part%w(i) * part%R * C_new_5(fnorme2(part%x(i, :) - part%x(j, :)) / part%R, part%R) &
-                * (part%x(i, :) - part%x(j, :)) / fnorme2(part%x(i, :) - part%x(j, :))
+        ! variables locales
+        integer :: k
+        real(rp), dimension(SPH_D) :: grad
+        real(rp) :: prod, div_ni
 
-            ! curvature force
-            !F = F - sigma * part%R * (part%gradR(i, :) - part%gradR(j, :))
+        if (fnorme2(part%x(i, :) - part%x(j, :)) <= part%R) then
+            div_ni = 0.0_rp
+            do k = 1, part%n
+                call prodScal(part%gradR(k, :), part%dWij(i, k, :), prod)
+                div_ni = div_ni + part%w(k) * prod
+            end do
+            F = -4.0_rp * sigma * div_ni * part%w(j) * part%dWij(i, j, :)
         else
             F = 0.0_rp
         end if
+    end subroutine
+
+
+
+    ! -------------------------------------------------------------------------------------------------------
+    ! Force de tension de surface solver SPH
+    ! -------------------------------------------------------------------------------------------------------
+    ! sigma : coefficient de tension de surface (gamma)
+    ! i : numéro d'une particule
+    ! part : liste des particules
+    subroutine FTS_rayon(sigma, i, part, F)
+        ! paramètres
+        real(rp), intent(in) :: sigma
+        integer, intent(in) :: i
+        type(Particules), intent(inout) :: part
+        real(rp), dimension(SPH_D), intent(out) :: F
+
+        ! variables locales
+        real(rp), dimension(SPH_D) :: ni, nj, Fij
+        integer :: k, j
+
+        F = 0.0_rp
+        do j = 1, i - 1
+            call F_ij_new(sigma, i, j, part, Fij)
+            F = F + Fij
+        end do
+        do j = i + 1, part%n
+            call F_ij_new(sigma, i, j, part, Fij)
+            F = F + Fij
+        end do
     end subroutine
 
 
