@@ -374,7 +374,7 @@ contains
         do i = 1, part%n
             call GR_p(i, part, part%P, grad_pressure)
             d_rwu_dt(i, :) = part%fts(i, :) - part%w(i) * grad_pressure
-            print *, part%fts(i, :), part%w(i) * grad_pressure
+            ! print *, part%fts(i, :), part%w(i) * grad_pressure
 
             !call prodScal(part%x(i, :) - centre, d_rwu_dt(i, :), prod)
             !plot_vec(i, :) = (/ part%x(i, :), d_rwu_dt(i, :), prod /)

@@ -30,8 +30,9 @@ PROGRAM main
     ! particules
     type(Particules) :: p
 
+    !!!!!!!!!!!!!!!!!
     real(rp), dimension(1000) :: rr, Ck, AW1, BW2
-    real(rp), dimension(2) :: grad
+    real(rp), dimension(2) :: grad, point, centre1, centre2, x, y, somme
 
 
 
@@ -70,6 +71,26 @@ PROGRAM main
     call iter_SPH(p, centre)
     call quarter(p, centre)
     print *, "np", p%n
+    print *, "R ", p%R
+
+
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    ! vérif intégrale sur l'intersection des deux disques
+    centre1 = 0.0_rp
+    centre2 = p%x(p%n, :)
+    somme = 0.0_rp
+    do i = 1, p%n - 1
+        x = p%x(p%n, :)
+        y = p%x(i, :)
+        point = x - y
+        if ((fnorme2(y - centre1) <= rayon) .and. (fnorme2(y - centre2) <= p%R)) then
+            call dx_W_SPH(point, p%R, grad)
+            somme = somme + grad * p%dx**2
+            ! print *, i, somme, grad
+        end if
+    end do
+    print *, "somme :", somme
+
 
 
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -81,7 +102,7 @@ PROGRAM main
         AW1(i) =  2.0_rp * W_SPH_liu((/ rr(i), 0.0_rp /), 0.8_rp * p%R)
         BW2(i) = -1.0_rp * W_SPH_liu((/ rr(i), 0.0_rp /), 1.0_rp * p%R)
     end do
-    call saveSol(rr, Ck, "../sorties/Ckordilla.dat")
+    ! call saveSol(rr, Ck, "../sorties/Ckordilla.dat")
     call saveSol(rr, AW1, "../sorties/AW1.dat")
     call saveSol(rr, BW2, "../sorties/BW2.dat")
     print *, "# R", p%R

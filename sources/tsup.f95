@@ -199,7 +199,7 @@ contains
 
 
     ! =======================================================================================================
-    ! TESTS DIVERS
+    ! FTS NEW
     ! =======================================================================================================
 
     ! -------------------------------------------------------------------------------------------------------
@@ -366,6 +366,35 @@ contains
             call F_ij_new(sigma, i, j, part, Fij)
             F = F + Fij
         end do
+    end subroutine
+
+
+
+    ! =======================================================================================================
+    ! FTS RAYON
+    ! =======================================================================================================
+
+    ! -------------------------------------------------------------------------------------------------------
+    ! Force de cohésion des particules i <- j
+    ! -------------------------------------------------------------------------------------------------------
+    subroutine F_ij_rayon(sigma, i, j, part, F)
+        ! paramètres
+        real(rp), intent(in) :: sigma
+        integer, intent(in) :: i, j
+        type(Particules), intent(in) :: part
+        real(rp), dimension(SPH_D), intent(out) :: F
+
+        if (fnorme2(part%x(i, :) - part%x(j, :)) <= part%R) then
+            ! cohesion force
+            !TODO : vérifier si il y a un moins devant le sigma
+            F = -sigma * part%w(i) * part%R * C_new_5(fnorme2(part%x(i, :) - part%x(j, :)) / part%R, part%R) &
+                * (part%x(i, :) - part%x(j, :)) / fnorme2(part%x(i, :) - part%x(j, :))
+
+            ! curvature force
+            !F = F - sigma * part%R * (part%gradR(i, :) - part%gradR(j, :))
+        else
+            F = 0.0_rp
+        end if
     end subroutine
 
 
