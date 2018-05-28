@@ -63,9 +63,9 @@ PROGRAM main
 
 
     ! tension de surface
-    !call set_fts(FTS_akinci, DONNEES_SIGMA, p)
-    !call set_fts(FTS_liu, DONNEES_SIGMA, p)
-    call set_fts(FTS_new, DONNEES_SIGMA, p)
+    call set_fts(FTS_akinci, DONNEES_SIGMA, p)
+    ! call set_fts(FTS_liu, DONNEES_SIGMA, p)
+    ! call set_fts(FTS_new, DONNEES_SIGMA, p)
 
     ! schéma SPH (équation 2)
     call iter_SPH(p, centre)

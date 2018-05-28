@@ -35,6 +35,26 @@ contains
     ! =======================================================================================================
 
     ! -------------------------------------------------------------------------------------------------------
+    ! gradient : \nabla W_SPH(xi - xj)
+    ! -------------------------------------------------------------------------------------------------------
+    ! part : liste des particules
+    subroutine set_dWij(part)
+        ! paramètres
+        type(Particules), intent(inout) :: part
+
+        ! variables locales
+        integer :: i, j
+
+        do j = 1, part%n
+            do i = 1, part%n
+                call dx_W_SPH(part%x(i, :) - part%x(j, :), part%R, part%dWij(i, j, :))
+            end do
+        end do
+    end subroutine
+
+
+
+    ! -------------------------------------------------------------------------------------------------------
     ! vecteur ni = R_SPH * \sum_j ( wj \nabla W_ij ) pour toute particule i
     ! -------------------------------------------------------------------------------------------------------
     ! part : liste des particules
@@ -51,15 +71,13 @@ contains
             ni = 0.0_rp
             do j = 1, i - 1
                 if (fnorme2(part%x(i, :) - part%x(j, :)) <= part%R) then
-                    call dx_W_SPH(part%x(i, :) - part%x(j, :), part%R, grad)
-                    ni = ni + part%w(j) * grad
+                    ni = ni + part%w(j) * part%dWij(i, j, :)
                 end if
             end do
 
             do j = i + 1, part%n
                 if (fnorme2(part%x(i, :) - part%x(j, :)) <= part%R) then
-                    call dx_W_SPH(part%x(i, :) - part%x(j, :), part%R, grad)
-                    ni = ni + part%w(j) * grad
+                    ni = ni + part%w(j) * part%dWij(i, j, :)
                 end if
             end do
 
@@ -231,15 +249,13 @@ contains
 
         do j = 1, i - 1
             if (fnorme2(part%x(i, :) - part%x(j, :)) <= part%R) then
-                call dx_W_SPH(part%x(i, :) - part%x(j, :), part%R, grad)
-                image = image + part%w(j) * f(j) * grad
+                image = image + part%w(j) * f(j) * part%dWij(i, j, :)
             end if
         end do
 
         do j = i + 1, part%n
             if (fnorme2(part%x(i, :) - part%x(j, :)) <= part%R) then
-                call dx_W_SPH(part%x(i, :) - part%x(j, :), part%R, grad)
-                image = image + part%w(j) * f(j) * grad
+                image = image + part%w(j) * f(j) * part%dWij(i, j, :)
             end if
         end do
     end subroutine
@@ -263,15 +279,13 @@ contains
 
         do j = 1, i - 1
             if (fnorme2(part%x(i, :) - part%x(j, :)) <= part%R) then
-                call dx_W_SPH(part%x(i, :) - part%x(j, :), part%R, grad)
-                image = image + part%w(j) * (f(j) - f(i)) * grad
+                image = image + part%w(j) * (f(j) - f(i)) * part%dWij(i, j, :)
             end if
         end do
 
         do j = i + 1, part%n
             if (fnorme2(part%x(i, :) - part%x(j, :)) <= part%R) then
-                call dx_W_SPH(part%x(i, :) - part%x(j, :), part%R, grad)
-                image = image + part%w(j) * (f(j) - f(i)) * grad
+                image = image + part%w(j) * (f(j) - f(i)) * part%dwij(i, j, :)
             end if
         end do
     end subroutine
@@ -295,15 +309,13 @@ contains
 
         do j = 1, i - 1
             if (fnorme2(part%x(i, :) - part%x(j, :)) <= part%R) then
-                call dx_W_SPH(part%x(i, :) - part%x(j, :), part%R, grad)
-                image = image + part%w(j) * (f(j) + f(i)) * grad
+                image = image + part%w(j) * (f(j) + f(i)) * part%dWij(i, j, :)
             end if
         end do
 
         do j = i + 1, part%n
             if (fnorme2(part%x(i, :) - part%x(j, :)) <= part%R) then
-                call dx_W_SPH(part%x(i, :) - part%x(j, :), part%R, grad)
-                image = image + part%w(j) * (f(j) + f(i)) * grad
+                image = image + part%w(j) * (f(j) + f(i)) * part%dWij(i, j, :)
             end if
         end do
     end subroutine
