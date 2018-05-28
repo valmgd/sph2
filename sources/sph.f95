@@ -45,12 +45,17 @@ contains
         ! variables locales
         integer :: i, j
 
+        part%dWij = 0.0_rp
+
         do j = 1, part%n
-            do i = 1, part%n
+            do i = 1, j - 1
                 if (fnorme2(part%x(i, :) - part%x(j, :)) <= part%R) then
                     call dx_W_SPH(part%x(i, :) - part%x(j, :), part%R, part%dWij(i, j, :))
-                else
-                    part%dWij(i, j, :) = 0.0_rp
+                end if
+            end do
+            do i = j + 1, part%n
+                if (fnorme2(part%x(i, :) - part%x(j, :)) <= part%R) then
+                    call dx_W_SPH(part%x(i, :) - part%x(j, :), part%R, part%dWij(i, j, :))
                 end if
             end do
         end do

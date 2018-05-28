@@ -422,7 +422,7 @@ contains
 
         F = 0.0_rp
         do j = 1, i - 1
-            call F_ij_new(sigma, i, j, part, Fij)
+            call F_ij_rayon(sigma, i, j, part, Fij)
             F = F + Fij
         end do
         do j = i + 1, part%n

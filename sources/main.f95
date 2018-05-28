@@ -65,9 +65,10 @@ PROGRAM main
 
 
     ! tension de surface
-    call set_fts(FTS_akinci, DONNEES_SIGMA, p)
+    ! call set_fts(FTS_akinci, DONNEES_SIGMA, p)
     ! call set_fts(FTS_liu, DONNEES_SIGMA, p)
     ! call set_fts(FTS_new, DONNEES_SIGMA, p)
+    call set_fts(FTS_rayon, DONNEES_SIGMA, p)
 
     ! schéma SPH (équation 2)
     call iter_SPH(p, centre)
@@ -128,9 +129,10 @@ PROGRAM main
 
 
     ! *******************************************************************************************************
-    call system("gnuplot ../sources/Plot.gnu")
+    write (*, '("### temps d''éxecution :",1F6.2)'), t_end - t_start
     call rm_Particules(p)
     deallocate(bornes, centre)
-    write (*, '("### temps d''éxecution :",1F6.2)'), t_end - t_start
+    print *, "CALLING GNUPLOT"
+    call system("gnuplot ../sources/Plot.gnu")
 
 END PROGRAM main
