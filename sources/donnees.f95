@@ -148,7 +148,7 @@ contains
 
         part%n = size(part%x, 1)
         allocate(part%w(part%n), part%rho(part%n), part%u(part%n, d_Omega), part%P(part%n))
-        allocate(part%gradR(part%n, d_Omega), part%fts(part%n, d_Omega))
+        allocate(part%gradR(part%n, d_Omega), part%fts(part%n, d_Omega), part%dWij(part%n, part%n, SPH_D))
         part%w = dx**d_Omega
         part%R = SPH_I * dx
 

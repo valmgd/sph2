@@ -47,7 +47,11 @@ contains
 
         do j = 1, part%n
             do i = 1, part%n
-                call dx_W_SPH(part%x(i, :) - part%x(j, :), part%R, part%dWij(i, j, :))
+                if (fnorme2(part%x(i, :) - part%x(j, :)) <= part%R) then
+                    call dx_W_SPH(part%x(i, :) - part%x(j, :), part%R, part%dWij(i, j, :))
+                else
+                    part%dWij(i, j, :) = 0.0_rp
+                end if
             end do
         end do
     end subroutine
@@ -285,7 +289,7 @@ contains
 
         do j = i + 1, part%n
             if (fnorme2(part%x(i, :) - part%x(j, :)) <= part%R) then
-                image = image + part%w(j) * (f(j) - f(i)) * part%dwij(i, j, :)
+                image = image + part%w(j) * (f(j) - f(i)) * part%dWij(i, j, :)
             end if
         end do
     end subroutine
