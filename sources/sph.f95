@@ -79,19 +79,27 @@ contains
         do i = 1, part%n
             ni = 0.0_rp
             do j = 1, i - 1
-                if (fnorme2(part%x(i, :) - part%x(j, :)) <= part%R) then
-                    ni = ni + part%w(j) * part%dWij(i, j, :)
-                end if
+                ni = ni + part%w(j) * part%dWij(i, j, :)
             end do
 
             do j = i + 1, part%n
-                if (fnorme2(part%x(i, :) - part%x(j, :)) <= part%R) then
-                    ni = ni + part%w(j) * part%dWij(i, j, :)
-                end if
+                ni = ni + part%w(j) * part%dWij(i, j, :)
             end do
 
             part%gradR(i, :) = part%R * ni
+
+            if (fnorme2(part%x(i, :) - part%centre) <= part%rayon - part%R + part%dx/2.0_rp) then
+                part%nor(i, :) = 0.0_rp
+            else
+                part%nor(i, :) = ni / fnorme2(ni)
+            end if
         end do
+
+        open(unit = 10, file = "../sorties/nor.dat")
+        do i = 1, part%n
+            write (10, *), part%x(i, :), part%nor(i, :)
+        end do
+        close(10)
     end subroutine
 
 
@@ -257,15 +265,11 @@ contains
         image = 0.0_rp
 
         do j = 1, i - 1
-            if (fnorme2(part%x(i, :) - part%x(j, :)) <= part%R) then
-                image = image + part%w(j) * f(j) * part%dWij(i, j, :)
-            end if
+            image = image + part%w(j) * f(j) * part%dWij(i, j, :)
         end do
 
         do j = i + 1, part%n
-            if (fnorme2(part%x(i, :) - part%x(j, :)) <= part%R) then
-                image = image + part%w(j) * f(j) * part%dWij(i, j, :)
-            end if
+            image = image + part%w(j) * f(j) * part%dWij(i, j, :)
         end do
     end subroutine
 
@@ -287,15 +291,11 @@ contains
         image = 0.0_rp
 
         do j = 1, i - 1
-            if (fnorme2(part%x(i, :) - part%x(j, :)) <= part%R) then
-                image = image + part%w(j) * (f(j) - f(i)) * part%dWij(i, j, :)
-            end if
+            image = image + part%w(j) * (f(j) - f(i)) * part%dWij(i, j, :)
         end do
 
         do j = i + 1, part%n
-            if (fnorme2(part%x(i, :) - part%x(j, :)) <= part%R) then
-                image = image + part%w(j) * (f(j) - f(i)) * part%dWij(i, j, :)
-            end if
+            image = image + part%w(j) * (f(j) - f(i)) * part%dWij(i, j, :)
         end do
     end subroutine
 
@@ -317,15 +317,11 @@ contains
         image = 0.0_rp
 
         do j = 1, i - 1
-            if (fnorme2(part%x(i, :) - part%x(j, :)) <= part%R) then
-                image = image + part%w(j) * (f(j) + f(i)) * part%dWij(i, j, :)
-            end if
+            image = image + part%w(j) * (f(j) + f(i)) * part%dWij(i, j, :)
         end do
 
         do j = i + 1, part%n
-            if (fnorme2(part%x(i, :) - part%x(j, :)) <= part%R) then
-                image = image + part%w(j) * (f(j) + f(i)) * part%dWij(i, j, :)
-            end if
+            image = image + part%w(j) * (f(j) + f(i)) * part%dWij(i, j, :)
         end do
     end subroutine
 

@@ -40,8 +40,10 @@ MODULE var
         real(rp) :: R
         real(rp) :: dx
 
-        ! gradient de la fc cste R
+        ! gradient de la fc cste R, normale à la surface, divergence de la normale, tension de surface
         real(rp), dimension(:, :), allocatable :: gradR
+        real(rp), dimension(:, :), allocatable :: nor
+        real(rp), dimension(:), allocatable :: div_nor
         real(rp), dimension(:, :), allocatable :: fts
 
         ! noyau
@@ -51,6 +53,10 @@ MODULE var
         real(rp), dimension(:), allocatable :: rho
         real(rp), dimension(:, :), allocatable :: u
         real(rp), dimension(:), allocatable :: P
+
+        ! infos surface libre
+        real(rp), dimension(:), allocatable :: centre
+        real(rp) :: rayon
     end type Particules
 
 contains
@@ -93,6 +99,12 @@ contains
         if (allocated(part%gradR)) then
             deallocate(part%gradR)
         end if
+        if (allocated(part%nor)) then
+            deallocate(part%nor)
+        end if
+        if (allocated(part%div_nor)) then
+            deallocate(part%div_nor)
+        end if
         if (allocated(part%fts)) then
             deallocate(part%fts)
         end if
@@ -109,6 +121,10 @@ contains
         end if
         if (allocated(part%P)) then
             deallocate(part%P)
+        end if
+
+        if (allocated(part%centre)) then
+            deallocate(part%centre)
         end if
     end subroutine
 

@@ -36,6 +36,9 @@ PROGRAM main
 
 
 
+    ! -------------------------------------------------------------------------------------------------------
+    ! Computation
+    ! -------------------------------------------------------------------------------------------------------
     call cpu_time(t_start)
 
     ! lecture du fichier d'entrée
@@ -46,6 +49,7 @@ PROGRAM main
     !call set_W_SPH("liu")
 
     ! création du maillage initial
+    print *, "Create mesh. Thinking..."
     select case (choix)
     case (scenario_a)
         ! maillage d'un carré / cube
@@ -65,22 +69,39 @@ PROGRAM main
 
 
     ! tension de surface
-    ! call set_fts(FTS_akinci, DONNEES_SIGMA, p)
+    print *, "Set surface tension. Thinking..."
+    call set_fts(FTS_akinci, DONNEES_SIGMA, p)
     ! call set_fts(FTS_liu, DONNEES_SIGMA, p)
     ! call set_fts(FTS_new, DONNEES_SIGMA, p)
-    call set_fts(FTS_rayon, DONNEES_SIGMA, p)
+    ! call set_fts(FTS_rayon, DONNEES_SIGMA, p)
 
     ! schéma SPH (équation 2)
+    print *, "Compute mvt quantity. Thinking..."
     call iter_SPH(p, centre)
 
     call cpu_time(t_end)
 
+    ! -------------------------------------------------------------------------------------------------------
+    ! Affichages et vérifs
+    ! -------------------------------------------------------------------------------------------------------
+    print *, "________________________________________________"
+    print *, "                     |"
+    print *, "Nombre de particules |", p%n
+    print *, "dx                   |", p%dx
+    print *, "Rayon SPH            |", p%R
+    print *, "_____________________|__________________________"
     call quarter(p, centre)
-    print *, "np", p%n
-    print *, "R ", p%R
 
 
-    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+
+
+
+
+
+    ! >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     ! vérif intégrale sur l'intersection des deux disques
     centre1 = 0.0_rp
     centre2 = p%x(p%n, :)
@@ -95,14 +116,13 @@ PROGRAM main
             ! print *, i, somme, grad
         end if
     end do
-    print *, "somme :", somme
+    print *, "Intégrale sur l'intersection :", somme
+    ! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 
 
-
-    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    ! >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     ! affichage fonction cohésion
-    print *, "# dx", p%dx
     p%R = 1.0_rp
     rr = linspace(0.0_rp, 1.0_rp, 1000)
     do i = 1, 1000
@@ -113,7 +133,6 @@ PROGRAM main
     ! call saveSol(rr, Ck, "../sorties/Ckordilla.dat")
     call saveSol(rr, AW1, "../sorties/AW1.dat")
     call saveSol(rr, BW2, "../sorties/BW2.dat")
-    print *, "# R", p%R
 
     do i = 1, 1000
         Ck(i) = C_akinci(rr(i), p%R)
@@ -124,15 +143,23 @@ PROGRAM main
         Ck(i) = C_new_5(rr(i), p%R)
     end do
     call saveSol(rr, Ck, "../sorties/Cnew.dat")
+    ! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 
 
 
-    ! *******************************************************************************************************
+
+    ! @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    print *
     write (*, '("### temps d''éxecution :",1F6.2)'), t_end - t_start
     call rm_Particules(p)
     deallocate(bornes, centre)
+    print *
+    print *
+    print *
+    print *, "_______________"
     print *, "CALLING GNUPLOT"
     call system("gnuplot ../sources/Plot.gnu")
+    write (*, '("Done.")')
 
 END PROGRAM main

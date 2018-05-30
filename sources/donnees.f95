@@ -149,6 +149,7 @@ contains
         part%n = size(part%x, 1)
         allocate(part%w(part%n), part%rho(part%n), part%u(part%n, d_Omega), part%P(part%n))
         allocate(part%gradR(part%n, d_Omega), part%fts(part%n, d_Omega), part%dWij(part%n, part%n, SPH_D))
+        allocate(part%div_nor(part%n), part%nor(part%n, d_Omega))
         part%w = dx**d_Omega
         part%R = SPH_I * dx
 
@@ -216,6 +217,9 @@ contains
         part%n = size(part%x, 1)
         allocate(part%w(part%n), part%rho(part%n), part%u(part%n, d_Omega), part%P(part%n))
         allocate(part%gradR(part%n, d_Omega), part%fts(part%n, d_Omega), part%dWij(part%n, part%n, SPH_D))
+        allocate(part%div_nor(part%n), part%nor(part%n, d_Omega), part%centre(d_Omega))
+        part%centre = centre
+        part%rayon = rayon
         part%w = dx**d_Omega
         part%R = SPH_I * dx
 
@@ -280,6 +284,7 @@ contains
         part%u = 0.0_rp
         part%P = 0.0_rp
         call set_dWij(part)
+        !TODO à corriger !!!
         call set_gradR(part)
     end subroutine
 
