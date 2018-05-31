@@ -33,6 +33,8 @@ MODULE var
         integer :: n
         ! coordonnées des particules
         real(rp), dimension(:, :), allocatable :: x
+        ! couleur (eau ou air)
+        real(rp), dimension(:), allocatable :: color
         ! volume des particules
         real(rp), dimension(:), allocatable :: w
 
@@ -91,6 +93,9 @@ contains
 
         if (allocated(part%x)) then
             deallocate(part%x)
+        end if
+        if (allocated(part%color)) then
+            deallocate(part%color)
         end if
         if (allocated(part%w)) then
             deallocate(part%w)

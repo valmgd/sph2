@@ -6,7 +6,6 @@
 
 PROGRAM main
 
-    ! libraries
     use sph
 
     ! modules perso
