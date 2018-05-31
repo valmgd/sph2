@@ -226,9 +226,9 @@ contains
         length = fnorme2(x)
 
         if ((0.0_rp <= length) .and. (length < R / 2.0_rp)) then
-            W = 1.0_rp - 1.5_rp * (2.0_rp*length/R)**2 + 0.75_rp * (2.0_rp*length/R)**3
+            W = 1.0_rp - 6.0_rp * (length/R)**2 + 6.0_rp * (length/R)**3
         else if ((R / 2.0_rp <= length) .and. (length < R)) then
-            W = 0.25_rp * (2.0_rp - 2.0_rp*length/R)**3
+            W = 2.0_rp * (1.0_rp - length/R)**3
         else
             W = 0.0_rp
         end if

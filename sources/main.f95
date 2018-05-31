@@ -81,6 +81,8 @@ PROGRAM main
 
     call cpu_time(t_end)
 
+
+
     ! -------------------------------------------------------------------------------------------------------
     ! Affichages et vérifs
     ! -------------------------------------------------------------------------------------------------------
@@ -125,20 +127,24 @@ PROGRAM main
     ! affichage fonction cohésion
     p%R = 1.0_rp
     rr = linspace(0.0_rp, 1.0_rp, 1000)
-    do i = 1, 1000
-        Ck(i) = C_liu(rr(i), p%R)
-        AW1(i) =  2.0_rp * W_SPH_liu((/ rr(i), 0.0_rp /), 0.8_rp * p%R)
-        BW2(i) = -1.0_rp * W_SPH_liu((/ rr(i), 0.0_rp /), 1.0_rp * p%R)
-    end do
-    ! call saveSol(rr, Ck, "../sorties/Ckordilla.dat")
-    call saveSol(rr, AW1, "../sorties/AW1.dat")
-    call saveSol(rr, BW2, "../sorties/BW2.dat")
 
+    ! akinci
     do i = 1, 1000
         Ck(i) = C_akinci(rr(i), p%R)
     end do
     call saveSol(rr, Ck, "../sorties/Cakinci.dat")
 
+    ! liu (kordilla)
+    do i = 1, 1000
+        Ck(i) = C_liu(rr(i), p%R)
+        AW1(i) =  2.0_rp * W_SPH_liu((/ rr(i), 0.0_rp /), 0.8_rp * p%R)
+        BW2(i) = -1.0_rp * W_SPH_liu((/ rr(i), 0.0_rp /), 1.0_rp * p%R)
+    end do
+    call saveSol(rr, AW1, "../sorties/AW1.dat")
+    call saveSol(rr, BW2, "../sorties/BW2.dat")
+    call saveSol(rr, Ck, "../sorties/Cliu.dat")
+
+    ! new
     do i = 1, 1000
         Ck(i) = C_new_5(rr(i), p%R)
     end do
@@ -154,11 +160,7 @@ PROGRAM main
     write (*, '("### temps d''éxecution :",1F6.2)'), t_end - t_start
     call rm_Particules(p)
     deallocate(bornes, centre)
-    print *
-    print *
-    print *
-    print *, "_______________"
-    print *, "CALLING GNUPLOT"
+    write (*, '(/,/,/,"_______________",/,"CALLING GNUPLOT")')
     call system("gnuplot ../sources/Plot.gnu")
     write (*, '("Done.")')
 
