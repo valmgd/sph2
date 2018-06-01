@@ -103,7 +103,7 @@ PROGRAM main
 
 
     ! >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    ! vérif intégrale sur l'intersection des deux disques
+    ! Vérif intégrale sur l'intersection des deux disques. {{{
     centre1 = 0.0_rp
     centre2 = p%x(p%n, :)
     somme = 0.0_rp
@@ -118,12 +118,13 @@ PROGRAM main
         end if
     end do
     print *, "Intégrale sur l'intersection :", somme
+    ! }}}
     ! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 
 
     ! >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    ! affichage fonction cohésion
+    ! Affichage fonction cohésion. {{{
     p%R = 1.0_rp
     rr = linspace(0.0_rp, 1.0_rp, 1000)
 
@@ -148,6 +149,7 @@ PROGRAM main
         Ck(i) = C_new_5(rr(i), p%R)
     end do
     call saveSol(rr, Ck, "../sorties/Cnew.dat")
+    ! }}}
     ! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 

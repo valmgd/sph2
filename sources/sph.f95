@@ -74,24 +74,41 @@ contains
 
         ! variables locales
         integer :: i, j, k
-        real(rp), dimension(SPH_D) :: ni, grad
+        real(rp), dimension(SPH_D) :: ni0, ni1, grad
 
         do i = 1, part%n
-            ni = 0.0_rp
+            ni0 = 0.0_rp
+            ni1 = 0.0_rp
             do j = 1, i - 1
-                ni = ni + part%w(j) * part%dWij(i, j, :)
+                if ((i == 0) .and. (j == 0)) then
+                    ni0 = ni0 + part%w(j) * part%dWij(i, j, :)
+                else if ((i == 1) .and. (j == 1)) then
+                    ni1 = ni1 + part%w(j) * part%dWij(i, j, :)
+                end if
             end do
 
             do j = i + 1, part%n
-                ni = ni + part%w(j) * part%dWij(i, j, :)
+                if ((i == 0) .and. (j == 0)) then
+                    ni0 = ni0 + part%w(j) * part%dWij(i, j, :)
+                else if ((i == 1) .and. (j == 1)) then
+                    ni1 = ni1 + part%w(j) * part%dWij(i, j, :)
+                end if
             end do
 
-            part%gradR(i, :) = part%R * ni
+            if (i == 0) then
+                part%gradR(i, :) = part%R * ni0
+            else
+                part%gradR(i, :) = part%R * ni1
+            end if
 
             if (fnorme2(part%x(i, :) - part%centre) <= part%rayon - part%R + part%dx/2.0_rp) then
                 part%nor(i, :) = 0.0_rp
             else
-                part%nor(i, :) = ni / fnorme2(ni)
+                if (i == 0) then
+                    part%nor(i, :) = ni0 / fnorme2(ni0)
+                else
+                    part%nor(i, :) = ni1 / fnorme2(ni1)
+                end if
             end if
         end do
 
@@ -379,7 +396,7 @@ contains
 
 
     ! =======================================================================================================
-    ! SCHÉMA SPH
+    ! SCHÉMA SPH {{{
     ! =======================================================================================================
 
     ! -------------------------------------------------------------------------------------------------------
@@ -417,5 +434,6 @@ contains
 
         call writeMat(plot_vec, "../sorties/plot_vec.dat")
     end subroutine
+    ! }}}
 
 END MODULE sph
