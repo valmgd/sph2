@@ -34,7 +34,7 @@ MODULE var
         ! coordonnées des particules
         real(rp), dimension(:, :), allocatable :: x
         ! couleur (eau ou air)
-        real(rp), dimension(:), allocatable :: color
+        integer, dimension(:), allocatable :: color
         ! volume des particules
         real(rp), dimension(:), allocatable :: w
 

@@ -1,6 +1,7 @@
 ! ===========================================================================================================
 ! Module contenant les fonctions suivantes :
 !
+! ----------------------------------------------------------------------------------------------------
 !   subroutine set_DONNEES_SIGMA(valeur)
 !   subroutine readValues(nom_fichier, d_Omega, sigma, intervalle, n, bornes, centre, rayon)
 !   subroutine pave(d_Omega, n, bornes, nom_fichier, part)
@@ -117,6 +118,31 @@ contains
 
 
     ! -------------------------------------------------------------------------------------------------------
+    ! Check si une particule est dans un carré délimité par ses bornes.
+    ! -------------------------------------------------------------------------------------------------------
+    function isInSquare(x, bornes) result(couleur)
+        ! paramètres
+        real(rp), dimension(SPH_D), intent(in) :: x
+        real(rp), dimension(SPH_D, 2), intent(in) :: bornes
+
+        ! return
+        integer :: couleur
+
+        ! variables locales
+        integer :: i
+
+        couleur = 1
+
+        do i = 1, SPH_D
+            if (.not. ((bornes(i, 1) < x(i)) .and. (x(i) < bornes(i, 2)))) then
+                couleur = 0
+            end if
+        end do
+    end function
+
+
+
+    ! -------------------------------------------------------------------------------------------------------
     ! maille un carré / cube / hypercube... et écrit les valeurs dans un fichier
     ! -------------------------------------------------------------------------------------------------------
     ! d_Omega : dimension du pavé à mailler
@@ -157,7 +183,6 @@ contains
         part%w = dx**d_Omega
         part%R = SPH_I * dx
 
-        call writeMat(part%x, nom_fichier // "_points.dat")
 
         ! ---------------------------------------------------------------------------------------------------
         ligne = " "
@@ -207,8 +232,14 @@ contains
 
         ! affectation de la couleur des particules (intérieur 0 extérieur 1)
         do i = 1, part%n
-            !++!
+            part%color(i) = isInSquare(part%x(i, :), bi)
         end do
+
+        open(unit = 10, file = nom_fichier // "_points.dat")
+        do i = 1, part%n
+            write (10, *), part%x(i, :), part%color(i)
+        end do
+        close(10)
 
         call writeMat(transpose(bornes), nom_fichier // "_scale.dat")
     end subroutine
