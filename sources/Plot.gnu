@@ -103,8 +103,9 @@ if (d == 2) {
 #"../sorties/normale.dat" u 1:2:3:4 with vectors head filled lt rgb "black" title "direction G^R(1)(x)",\
 
     plot "../sorties/P.dat" u 1:2:3 with points pointtype 31 pointsize 1 lc rgb "blue" title "particules",\
-        "../sorties/x_enveloppe.dat" u 1:2 w l lt rgb "blue" lw 2 title "bord de {/Symbol W}",\
-        "../sorties/plot_vec.dat" u 1:2:3:4:($5>0?1:2) with vectors title "D{/Symbol rw}u / Dt" lw 2 linecolor variable,\
+        "../sorties/x_enveloppe.dat" u 1:2 w l lt rgb "green" lw 2 title "bord de {/Symbol W}",\
+        "../sorties/x_enveloppe2.dat" u 1:2 w l lt rgb "blue" lw 2 title "bord de {/Symbol W}",\
+        #"../sorties/plot_vec.dat" u 1:2:3:4:($5>0?1:2) with vectors title "D{/Symbol rw}u / Dt" lw 2 linecolor variable,\
         ;
 
 } else {

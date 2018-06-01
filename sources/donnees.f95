@@ -136,6 +136,9 @@ contains
         integer :: i, np
         real(rp) :: dx
 
+        character(len=20) :: ligne
+        real(rp), dimension(d_Omega, 2) :: bi
+
         dx = (bornes(1, 2) - bornes(1, 1)) / n
         part%dx = dx
         allocate(subd_axes(n, d_Omega))
@@ -143,17 +146,30 @@ contains
             subd_axes(:, i) = linspace(bornes(i, 1) + dx/2.0_rp, bornes(i, 2) - dx/2.0_rp, n)
         end do
 
+        ! meshgrid s'occupe de l'allocation de part%x
         call meshgrid(subd_axes, part%x)
         deallocate(subd_axes)
 
         part%n = size(part%x, 1)
         allocate(part%w(part%n), part%rho(part%n), part%u(part%n, d_Omega), part%P(part%n))
         allocate(part%gradR(part%n, d_Omega), part%fts(part%n, d_Omega), part%dWij(part%n, part%n, SPH_D))
-        allocate(part%div_nor(part%n), part%nor(part%n, d_Omega))
+        allocate(part%div_nor(part%n), part%nor(part%n, d_Omega), part%centre(d_Omega), part%color(part%n))
         part%w = dx**d_Omega
         part%R = SPH_I * dx
 
         call writeMat(part%x, nom_fichier // "_points.dat")
+
+        ! ---------------------------------------------------------------------------------------------------
+        ligne = " "
+        open(unit = 10, file = "../entrees/constantes")
+        do while (trim(ligne) /= "#interieur")
+            read (10, *) ligne
+        end do
+        do i = 1, SPH_D
+            read (10, *) bi(i, :)
+        end do
+        close(10)
+        ! ---------------------------------------------------------------------------------------------------
         open(unit = 10, file = nom_fichier // "_d.dat")
         write (10, *) d_Omega
         close(10)
@@ -164,6 +180,13 @@ contains
             write (10, *) bornes(1, 2), bornes(2, 2)
             write (10, *) bornes(1, 1), bornes(2, 2)
             write (10, *) bornes(1, 1), bornes(2, 1)
+            close(10)
+            open(unit = 10, file = nom_fichier // "_enveloppe2.dat")
+            write (10, *) bi(1, 1), bi(2, 1)
+            write (10, *) bi(1, 2), bi(2, 1)
+            write (10, *) bi(1, 2), bi(2, 2)
+            write (10, *) bi(1, 1), bi(2, 2)
+            write (10, *) bi(1, 1), bi(2, 1)
             close(10)
         else if (d_Omega == 3) then
             open(unit = 10, file = nom_fichier // "_enveloppe.dat")
@@ -181,6 +204,11 @@ contains
             write (10, *) bornes(1, 2), bornes(2, 1), bornes(3, 1)
             close(10)
         end if
+
+        ! affectation de la couleur des particules (intérieur 0 extérieur 1)
+        do i = 1, part%n
+            !++!
+        end do
 
         call writeMat(transpose(bornes), nom_fichier // "_scale.dat")
     end subroutine
@@ -217,7 +245,7 @@ contains
         part%n = size(part%x, 1)
         allocate(part%w(part%n), part%rho(part%n), part%u(part%n, d_Omega), part%P(part%n))
         allocate(part%gradR(part%n, d_Omega), part%fts(part%n, d_Omega), part%dWij(part%n, part%n, SPH_D))
-        allocate(part%div_nor(part%n), part%nor(part%n, d_Omega), part%centre(d_Omega))
+        allocate(part%div_nor(part%n), part%nor(part%n, d_Omega), part%centre(d_Omega), part%color(part%n))
         part%centre = centre
         part%rayon = rayon
         part%w = dx**d_Omega

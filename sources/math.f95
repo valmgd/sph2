@@ -486,6 +486,16 @@ contains
         norme = maxval(abs(v))
     end subroutine normeInf
 
+    function fnormeInf(v)
+        ! paramètres
+        real(rp), dimension(:), intent(in) :: v
+
+        ! return
+        real(rp) :: fnormeInf
+
+        fnormeInf = maxval(abs(v))
+    end function fnormeInf
+
 
 
     ! -------------------------------------------------------------------------------------------------------

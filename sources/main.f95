@@ -16,7 +16,7 @@ PROGRAM main
     ! choix de scénario
     character(len=*), parameter :: scenario_a = "pave"
     character(len=*), parameter :: scenario_b = "bulle"
-    character(len=*), parameter :: choix = scenario_b
+    character(len=*), parameter :: choix = scenario_a
 
     ! nombre de points par axes, indice de boucle
     integer :: n, i, d_Omega
