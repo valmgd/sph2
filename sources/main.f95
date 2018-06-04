@@ -20,8 +20,8 @@ PROGRAM main
 
     ! nombre de points par axes, indice de boucle
     integer :: n, i, d_Omega
-    ! bornes du domaine dans chaque direction
-    real(rp), dimension(:, :), allocatable :: bornes
+    ! bornes_ext du domaine dans chaque direction
+    real(rp), dimension(:, :), allocatable :: bornes_ext, bornes_int
     ! pour une bulle
     real(rp), dimension(:), allocatable :: centre
     real(rp) :: rayon, intervalle, sigma, t_start, t_end
@@ -41,7 +41,7 @@ PROGRAM main
     call cpu_time(t_start)
 
     ! lecture du fichier d'entrée
-    call readValues("../entrees/constantes", d_Omega, sigma, intervalle, n, bornes, centre, rayon)
+    call readValues("../entrees/constantes", d_Omega, sigma, intervalle, n, bornes_ext, bornes_int, centre, rayon)
 
     ! choix du noyau SPH
     call set_W_SPH("wendland")
@@ -52,12 +52,12 @@ PROGRAM main
     select case (choix)
     case (scenario_a)
         ! maillage d'un carré / cube
-        call pave(SPH_D, n, bornes, "../sorties/x", p)
-        call init_var_pave(bornes, p)
+        call pave(SPH_D, n, bornes_ext, bornes_int, "../sorties/x", p)
+        call init_var_pave(bornes_ext, p, isInsideSquare)
     case (scenario_b)
         ! maillage d'une bulle
         call bulle(SPH_D, n, centre, rayon, "../sorties/x", p)
-        call init_var_bulle(centre, rayon, p)
+        call init_var_bulle(centre, rayon, p, isInsideSquare)
     case default
         write (*, *) "choix de scénario invalide"
     end select
@@ -160,9 +160,36 @@ PROGRAM main
     print *
     write (*, '("### temps d''éxecution :",1F6.2)'), t_end - t_start
     call rm_Particules(p)
-    deallocate(bornes, centre)
+    deallocate(bornes_ext, centre)
     write (*, '(/,/,/,"_______________",/,"CALLING GNUPLOT")')
     call system("gnuplot ../sources/Plot.gnu")
     write (*, '("Done.")')
+
+    ! CONTAINS {{{
+contains
+
+    function isInsideSquare(x) result(answer)
+        ! paramètres
+        real(rp), dimension(SPH_D), intent(in) :: x
+
+        ! return
+        logical :: answer
+
+        ! variables locales
+        integer :: i
+        real(rp), dimension(SPH_D, 2) :: bornes1, bornes2, bornes3
+
+        bornes1(:, 1) = bornes_ext(:, 1) + p%R
+        bornes1(:, 2) = bornes_ext(:, 2) - p%R
+
+        bornes2(:, 1) = bornes_int(:, 1) - p%R
+        bornes2(:, 2) = bornes_int(:, 2) + p%R
+
+        bornes3(:, 1) = bornes_int(:, 1) + p%R
+        bornes3(:, 2) = bornes_int(:, 2) - p%R
+
+        answer = (isInSquare(x, bornes1) .and. (.not. isInSquare(x, bornes2))) .or. isInSquare(x, bornes3)
+    end function
+    ! }}}
 
 END PROGRAM main

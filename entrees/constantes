@@ -10,12 +10,12 @@
 #n
 30                 ! n
 
-#bornes
+#bornes_ext
 -0.015D0 0.015D0       ! xmin xmax
 -0.015D0 0.015D0       ! ymin ymax
 -0.015D0 0.015D0       ! zmin zmax
 
-#interieur
+#bornes_int
 -0.01D0 0.01D0       ! xmin xmax
 -0.01D0 0.01D0       ! ymin ymax
 -0.01D0 0.01D0       ! zmin zmax

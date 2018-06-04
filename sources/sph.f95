@@ -68,9 +68,10 @@ contains
     ! -------------------------------------------------------------------------------------------------------
     ! part : liste des particules
     ! n : vecteurs normaux non normalisés (en sortie)
-    subroutine set_gradR(part)
+    subroutine set_gradR(part, func_isInside)
         ! paramètres
         type(Particules), intent(inout) :: part
+        logical, external :: func_isInside
 
         ! variables locales
         integer :: i, j, k
@@ -80,31 +81,32 @@ contains
             ni0 = 0.0_rp
             ni1 = 0.0_rp
             do j = 1, i - 1
-                if ((i == 0) .and. (j == 0)) then
+                if ((part%color(i) == 0) .and. (part%color(j) == 0)) then
                     ni0 = ni0 + part%w(j) * part%dWij(i, j, :)
-                else if ((i == 1) .and. (j == 1)) then
+                else if ((part%color(i) == 1) .and. (part%color(j) == 1)) then
                     ni1 = ni1 + part%w(j) * part%dWij(i, j, :)
                 end if
             end do
 
             do j = i + 1, part%n
-                if ((i == 0) .and. (j == 0)) then
+                if ((part%color(i) == 0) .and. (part%color(j) == 0)) then
                     ni0 = ni0 + part%w(j) * part%dWij(i, j, :)
-                else if ((i == 1) .and. (j == 1)) then
+                else if ((part%color(i) == 1) .and. (part%color(j) == 1)) then
                     ni1 = ni1 + part%w(j) * part%dWij(i, j, :)
                 end if
             end do
 
-            if (i == 0) then
+            if (part%color(i) == 0) then
                 part%gradR(i, :) = part%R * ni0
             else
                 part%gradR(i, :) = part%R * ni1
             end if
 
-            if (fnorme2(part%x(i, :) - part%centre) <= part%rayon - part%R + part%dx/2.0_rp) then
+            ! if (fnorme2(part%x(i, :) - part%centre) <= part%rayon - part%R + part%dx/2.0_rp) then
+            if ( func_isInside(part%x(i, :)) ) then
                 part%nor(i, :) = 0.0_rp
             else
-                if (i == 0) then
+                if (part%color(i) == 0) then
                     part%nor(i, :) = ni0 / fnorme2(ni0)
                 else
                     part%nor(i, :) = ni1 / fnorme2(ni1)
@@ -115,7 +117,7 @@ contains
         ! >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         open(unit = 10, file = "../sorties/nor.dat")
         do i = 1, part%n
-            write (10, *), part%x(i, :), part%nor(i, :)
+            write (10, *), part%x(i, :), part%nor(i, :) * 0.001_rp
         end do
         close(10)
         ! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<

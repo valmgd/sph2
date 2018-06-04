@@ -35,14 +35,14 @@ contains
     ! -------------------------------------------------------------------------------------------------------
     ! lire valeur en cherchant balises
     ! -------------------------------------------------------------------------------------------------------
-    subroutine readValues(nom_fichier, d_Omega, sigma, intervalle, n, bornes, centre, rayon)
+    subroutine readValues(nom_fichier, d_Omega, sigma, intervalle, n, bornes_ext, bornes_int, centre, rayon)
         ! paramètres
         character(len=*), intent(in) :: nom_fichier
         integer, intent(out) :: d_Omega
         real(rp), intent(out) :: sigma
         real(rp), intent(out) :: intervalle
         integer, intent(out) :: n
-        real(rp), dimension(:, :), allocatable, intent(out) :: bornes
+        real(rp), dimension(:, :), allocatable, intent(out) :: bornes_ext, bornes_int
         real(rp), dimension(:), allocatable, intent(out) :: centre
         real(rp), intent(out) :: rayon
 
@@ -78,7 +78,7 @@ contains
         call set_SPH_D(d_Omega)
         call set_DONNEES_SIGMA(sigma)
         call set_SPH_I(intervalle)
-        allocate(bornes(SPH_D, 2), centre(SPH_D))
+        allocate(bornes_ext(SPH_D, 2), bornes_int(SPH_D, 2), centre(SPH_D))
 
         ligne = " "
         open(unit = 10, file = nom_fichier)
@@ -90,11 +90,21 @@ contains
 
         ligne = " "
         open(unit = 10, file = nom_fichier)
-        do while (trim(ligne) /= "#bornes")
+        do while (trim(ligne) /= "#bornes_ext")
             read (10, *) ligne
         end do
         do i = 1, SPH_D
-            read (10, *) bornes(i, :)
+            read (10, *) bornes_ext(i, :)
+        end do
+        close(10)
+
+        ligne = " "
+        open(unit = 10, file = nom_fichier)
+        do while (trim(ligne) /= "#bornes_int")
+            read (10, *) ligne
+        end do
+        do i = 1, SPH_D
+            read (10, *) bornes_int(i, :)
         end do
         close(10)
 
@@ -120,7 +130,7 @@ contains
     ! -------------------------------------------------------------------------------------------------------
     ! Check si une particule est dans un carré délimité par ses bornes.
     ! -------------------------------------------------------------------------------------------------------
-    function isInSquare(x, bornes) result(couleur)
+    function set_color(x, bornes) result(couleur)
         ! paramètres
         real(rp), dimension(SPH_D), intent(in) :: x
         real(rp), dimension(SPH_D, 2), intent(in) :: bornes
@@ -136,6 +146,28 @@ contains
         do i = 1, SPH_D
             if (.not. ((bornes(i, 1) < x(i)) .and. (x(i) < bornes(i, 2)))) then
                 couleur = 0
+                exit
+            end if
+        end do
+    end function
+
+    function isInSquare(x, bornes) result(answer)
+        ! paramètres
+        real(rp), dimension(SPH_D), intent(in) :: x
+        real(rp), dimension(SPH_D, 2), intent(in) :: bornes
+
+        ! return
+        logical :: answer
+
+        ! variables locales
+        integer :: i
+
+        answer = .TRUE.
+
+        do i = 1, SPH_D
+            if (.not. ((bornes(i, 1) < x(i)) .and. (x(i) < bornes(i, 2)))) then
+                answer = .FALSE.
+                exit
             end if
         end do
     end function
@@ -150,10 +182,10 @@ contains
     ! bornes : bornes du pavé à mailler -> xmin, xmax \n ymin, ymax \n zmin, zmax
     ! nom_fichier : début du nom des fichiers dans lequel sont écrits les points et l'enveloppe du pavé
     ! part : liste de particules retournées (coordonnées + volumes)
-    subroutine pave(d_Omega, n, bornes, nom_fichier, part)
+    subroutine pave(d_Omega, n, bornes_ext, bornes_int, nom_fichier, part)
         ! paramètres
         integer, intent(in) :: d_Omega, n
-        real(rp), dimension(d_Omega, 2), intent(in) :: bornes
+        real(rp), dimension(d_Omega, 2), intent(in) :: bornes_ext, bornes_int
         character(len=*), intent(in) :: nom_fichier
         type(Particules), intent(out) :: part
 
@@ -163,13 +195,12 @@ contains
         real(rp) :: dx
 
         character(len=20) :: ligne
-        real(rp), dimension(d_Omega, 2) :: bi
 
-        dx = (bornes(1, 2) - bornes(1, 1)) / n
+        dx = (bornes_ext(1, 2) - bornes_ext(1, 1)) / n
         part%dx = dx
         allocate(subd_axes(n, d_Omega))
         do i = 1, d_Omega
-            subd_axes(:, i) = linspace(bornes(i, 1) + dx/2.0_rp, bornes(i, 2) - dx/2.0_rp, n)
+            subd_axes(:, i) = linspace(bornes_ext(i, 1) + dx/2.0_rp, bornes_ext(i, 2) - dx/2.0_rp, n)
         end do
 
         ! meshgrid s'occupe de l'allocation de part%x
@@ -184,55 +215,44 @@ contains
         part%R = SPH_I * dx
 
 
-        ! ---------------------------------------------------------------------------------------------------
-        ligne = " "
-        open(unit = 10, file = "../entrees/constantes")
-        do while (trim(ligne) /= "#interieur")
-            read (10, *) ligne
-        end do
-        do i = 1, SPH_D
-            read (10, *) bi(i, :)
-        end do
-        close(10)
-        ! ---------------------------------------------------------------------------------------------------
         open(unit = 10, file = nom_fichier // "_d.dat")
         write (10, *) d_Omega
         close(10)
         if (d_Omega == 2) then
             open(unit = 10, file = nom_fichier // "_enveloppe.dat")
-            write (10, *) bornes(1, 1), bornes(2, 1)
-            write (10, *) bornes(1, 2), bornes(2, 1)
-            write (10, *) bornes(1, 2), bornes(2, 2)
-            write (10, *) bornes(1, 1), bornes(2, 2)
-            write (10, *) bornes(1, 1), bornes(2, 1)
+            write (10, *) bornes_ext(1, 1), bornes_ext(2, 1)
+            write (10, *) bornes_ext(1, 2), bornes_ext(2, 1)
+            write (10, *) bornes_ext(1, 2), bornes_ext(2, 2)
+            write (10, *) bornes_ext(1, 1), bornes_ext(2, 2)
+            write (10, *) bornes_ext(1, 1), bornes_ext(2, 1)
             close(10)
             open(unit = 10, file = nom_fichier // "_enveloppe2.dat")
-            write (10, *) bi(1, 1), bi(2, 1)
-            write (10, *) bi(1, 2), bi(2, 1)
-            write (10, *) bi(1, 2), bi(2, 2)
-            write (10, *) bi(1, 1), bi(2, 2)
-            write (10, *) bi(1, 1), bi(2, 1)
+            write (10, *) bornes_int(1, 1), bornes_int(2, 1)
+            write (10, *) bornes_int(1, 2), bornes_int(2, 1)
+            write (10, *) bornes_int(1, 2), bornes_int(2, 2)
+            write (10, *) bornes_int(1, 1), bornes_int(2, 2)
+            write (10, *) bornes_int(1, 1), bornes_int(2, 1)
             close(10)
         else if (d_Omega == 3) then
             open(unit = 10, file = nom_fichier // "_enveloppe.dat")
-            write (10, *) bornes(1, 1), bornes(2, 1), bornes(3, 1)
-            write (10, *) bornes(1, 1), bornes(2, 1), bornes(3, 2)
-            write (10, *) bornes(1, 1), bornes(2, 2), bornes(3, 2)
-            write (10, *) bornes(1, 1), bornes(2, 2), bornes(3, 1)
-            write (10, *) bornes(1, 1), bornes(2, 1), bornes(3, 1)
+            write (10, *) bornes_ext(1, 1), bornes_ext(2, 1), bornes_ext(3, 1)
+            write (10, *) bornes_ext(1, 1), bornes_ext(2, 1), bornes_ext(3, 2)
+            write (10, *) bornes_ext(1, 1), bornes_ext(2, 2), bornes_ext(3, 2)
+            write (10, *) bornes_ext(1, 1), bornes_ext(2, 2), bornes_ext(3, 1)
+            write (10, *) bornes_ext(1, 1), bornes_ext(2, 1), bornes_ext(3, 1)
             write (10, *)
 
-            write (10, *) bornes(1, 2), bornes(2, 1), bornes(3, 1)
-            write (10, *) bornes(1, 2), bornes(2, 1), bornes(3, 2)
-            write (10, *) bornes(1, 2), bornes(2, 2), bornes(3, 2)
-            write (10, *) bornes(1, 2), bornes(2, 2), bornes(3, 1)
-            write (10, *) bornes(1, 2), bornes(2, 1), bornes(3, 1)
+            write (10, *) bornes_ext(1, 2), bornes_ext(2, 1), bornes_ext(3, 1)
+            write (10, *) bornes_ext(1, 2), bornes_ext(2, 1), bornes_ext(3, 2)
+            write (10, *) bornes_ext(1, 2), bornes_ext(2, 2), bornes_ext(3, 2)
+            write (10, *) bornes_ext(1, 2), bornes_ext(2, 2), bornes_ext(3, 1)
+            write (10, *) bornes_ext(1, 2), bornes_ext(2, 1), bornes_ext(3, 1)
             close(10)
         end if
 
         ! affectation de la couleur des particules (intérieur 0 extérieur 1)
         do i = 1, part%n
-            part%color(i) = isInSquare(part%x(i, :), bi)
+            part%color(i) = set_color(part%x(i, :), bornes_int)
         end do
 
         open(unit = 10, file = nom_fichier // "_points.dat")
@@ -241,7 +261,7 @@ contains
         end do
         close(10)
 
-        call writeMat(transpose(bornes), nom_fichier // "_scale.dat")
+        call writeMat(transpose(bornes_ext), nom_fichier // "_scale.dat")
     end subroutine
 
 
@@ -315,11 +335,12 @@ contains
     ! initialise la pression pour toutes les particules
     ! -------------------------------------------------------------------------------------------------------
     ! part : liste de particules
-    subroutine init_var_bulle(centreBulle, rayonBulle, part)
+    subroutine init_var_bulle(centreBulle, rayonBulle, part, func_isInside)
         ! paramètres
         real(rp), dimension(:), intent(in) :: centreBulle
         real(rp), intent(in) :: rayonBulle
         type(Particules), intent(inout) :: part
+        logical, external :: func_isInside
 
         ! variables locales
         integer :: i
@@ -328,13 +349,14 @@ contains
         part%u = 0.0_rp
         part%P = 2.0_rp * DONNEES_SIGMA / rayonBulle
         call set_dWij(part)
-        call set_gradR(part)
+        call set_gradR(part, func_isInside)
     end subroutine
 
-    subroutine init_var_pave(bornes, part)
+    subroutine init_var_pave(bornes, part, func_isInside)
         ! paramètres
         real(rp), dimension(:, :), intent(in) :: bornes
         type(Particules), intent(inout) :: part
+        logical, external :: func_isInside
 
         ! variables locales
         integer :: i
@@ -344,7 +366,7 @@ contains
         part%P = 0.0_rp
         call set_dWij(part)
         !TODO à corriger !!!
-        call set_gradR(part)
+        call set_gradR(part, func_isInside)
     end subroutine
 
 
