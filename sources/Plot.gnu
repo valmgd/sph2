@@ -2,41 +2,41 @@
 set term postscript eps enhanced color solid size 3.5,2.62 font 'Helvetica,12';
 set output "../graphes/cohesion_akinci.ps";
 set encoding utf8;
-set title "Noyau de cohésion de N. Akinci 2D"
-set xrange [0:1]
+set title "Noyau de cohésion de N. Akinci 2D";
+set xrange [0:1];
 #set yrange [-1:2]
-set xlabel "q = ||x_i - x|| / R"
-set ylabel ""
-set grid
-set border 19
-plot "../sorties/Cakinci.dat" u 1:2 w l lc rgb "blue" lw 3 title "C(x_i - x)"
+set xlabel "q = ||x_i - x|| / R";
+set ylabel "";
+set grid;
+set border 19;
+plot "../sorties/Cakinci.dat" u 1:2 w l lc rgb "blue" lw 3 title "C(x_i - x)";
 
 reset;
 set term postscript eps enhanced color solid size 3.5,2.62 font 'Helvetica,12';
 set output "../graphes/cohesion_liu.ps";
 set encoding utf8;
-set title "Noyau de cohésion de M. Liu"
-set xrange [0:1]
-#set yrange [-1:2]
-set xlabel "q = ||x_i - x|| / R"
-set ylabel "C"
-set grid
-set border 19
+set title "Noyau de cohésion de M. Liu";
+set xrange [0:1];
+#set yrange [-1:2];
+set xlabel "q = ||x_i - x|| / R";
+set ylabel "C";
+set grid;
+set border 19;
 plot "../sorties/Cliu.dat" u 1:2 w l lc rgb "blue" lw 3 title "C(x_i - x)", \
-     "../sorties/AW1.dat" u 1:2 w l lc rgb "green" title "AW_1", \
-     "../sorties/BW2.dat" u 1:2 w l lc rgb "red" title "BW_2"
+         "../sorties/AW1.dat" u 1:2 w l lc rgb "green" title "AW_1", \
+         "../sorties/BW2.dat" u 1:2 w l lc rgb "red" title "BW_2";
 
 set term postscript eps enhanced color solid size 3.5,2.62 font 'Helvetica,12';
 set output "../graphes/cohesion_new.ps";
 set encoding utf8;
-set title "Noyau de cohésion"
-set xrange [0:1]
+set title "Noyau de cohésion";
+set xrange [0:1];
 #set yrange [-1:2]
-set xlabel "q = ||x_i - x|| / R"
-set ylabel ""
-set grid
-set border 19
-plot "../sorties/Cnew.dat" u 1:2 w l lc rgb "blue" lw 3 title "C(x_i - x)"
+set xlabel "q = ||x_i - x|| / R";
+set ylabel "";
+set grid;
+set border 19;
+plot "../sorties/Cnew.dat" u 1:2 w l lc rgb "blue" lw 3 title "C(x_i - x)";
 
 
 
@@ -44,17 +44,21 @@ reset;
 set term postscript eps enhanced color solid size 3.5,2.62 font 'Helvetica,12';
 set output "../graphes/gradR.ps";
 set encoding utf8;
-set title "Noyau de cohésion"
-#set yrange [-1:2]
-set xlabel "||x_i - x||"
-set ylabel ""
+set title "Noyau de cohésion";
+#set yrange [-1:2];
+set xlabel "||x_i - x||";
+set ylabel "";
 set size ratio -1;
-set grid
-set border 19
-plot "../sorties/P.dat" u 1:2:3 with points pointtype 31 pointsize 0.2 lc rgb "blue" title "particules",\
-         "../sorties/x_enveloppe.dat" u 1:2 w l lt rgb "blue" lw 2 title "bord de {/Symbol W}",\
-         "../sorties/nor.dat" u 1:2:3:4 with vectors head filled lt rgb "black" title "direction G^R(R)(x)";
-#        "../sorties/gradR.dat" u 1:2:3:4 with vectors head filled lt rgb "black" title "direction G^R(R)(x)";
+set grid;
+set border 19;
+set linetype 1 linecolor rgb "blue";
+set linetype 2 linecolor rgb "green";
+set border 16;
+plot "../sorties/x_points.dat" u 1:2:($3==1?1:2) with points pointtype 31 pointsize 0.5 linecolor variable title "particules",\
+         "../sorties/x_enveloppe.dat" u 1:2 w l lt rgb "green" lw 2 title "bord de {/Symbol W}",\
+         "../sorties/x_enveloppe2.dat" u 1:2 w l lt rgb "blue" lw 2 title "bord de {/Symbol W}",\
+         "../sorties/nor.dat" u 1:2:3:4 with vectors head filled lt rgb "black" title "direction G^R(R)(x)",\
+;
 
 # ===========================================================================================================
 # réinitialisation des paramètres
@@ -105,7 +109,7 @@ if (d == 2) {
     plot "../sorties/x_points.dat" u 1:2:($3==1?1:2) with points pointtype 31 pointsize 1 linecolor variable title "particules",\
         "../sorties/x_enveloppe.dat" u 1:2 w l lt rgb "green" lw 2 title "bord de {/Symbol W}",\
         "../sorties/x_enveloppe2.dat" u 1:2 w l lt rgb "blue" lw 2 title "bord de {/Symbol W}",\
-        #"../sorties/plot_vec.dat" u 1:2:3:4:($5>0?1:2) with vectors title "D{/Symbol rw}u / Dt" lw 2 linecolor variable,\
+#"../sorties/plot_vec.dat" u 1:2:3:4:($5>0?1:2) with vectors title "D{/Symbol rw}u / Dt" lw 2 linecolor variable,\
         ;
 
 } else {
