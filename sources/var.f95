@@ -92,9 +92,6 @@ contains
         if (allocated(part%x)) then
             deallocate(part%x)
         end if
-        if (allocated(part%color)) then
-            deallocate(part%color)
-        end if
         if (allocated(part%w)) then
             deallocate(part%w)
         end if
