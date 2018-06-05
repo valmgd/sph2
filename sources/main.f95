@@ -69,10 +69,10 @@ PROGRAM main
 
     ! tension de surface
     print *, "Set surface tension. Thinking..."
-    call set_fts(FTS_akinci, DONNEES_SIGMA, p)
+    ! call set_fts(FTS_akinci, DONNEES_SIGMA, p)
     ! call set_fts(FTS_liu, DONNEES_SIGMA, p)
     ! call set_fts(FTS_new, DONNEES_SIGMA, p)
-    ! call set_fts(FTS_rayon, DONNEES_SIGMA, p)
+    call set_fts(FTS_rayon, DONNEES_SIGMA, p)
 
     ! schéma SPH (équation 2)
     print *, "Compute mvt quantity. Thinking..."
