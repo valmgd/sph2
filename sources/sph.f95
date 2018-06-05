@@ -75,41 +75,28 @@ contains
 
         ! variables locales
         integer :: i, j, k
-        real(rp), dimension(SPH_D) :: ni0, ni1, grad
+        real(rp), dimension(SPH_D) :: ni, grad
 
         do i = 1, part%n
-            ni0 = 0.0_rp
-            ni1 = 0.0_rp
+            ni = 0.0_rp
             do j = 1, i - 1
-                if ((part%color(i) == 0) .and. (part%color(j) == 0)) then
-                    ni0 = ni0 + part%w(j) * part%dWij(i, j, :)
-                else if ((part%color(i) == 1) .and. (part%color(j) == 1)) then
-                    ni1 = ni1 + part%w(j) * part%dWij(i, j, :)
-                end if
+                ni = ni + part%w(j) * (part%color(j) - part%color(i)) * part%dWij(i, j, :)
             end do
 
             do j = i + 1, part%n
-                if ((part%color(i) == 0) .and. (part%color(j) == 0)) then
-                    ni0 = ni0 + part%w(j) * part%dWij(i, j, :)
-                else if ((part%color(i) == 1) .and. (part%color(j) == 1)) then
-                    ni1 = ni1 + part%w(j) * part%dWij(i, j, :)
-                end if
+                ni = ni + part%w(j) * (part%color(j) - part%color(i)) * part%dWij(i, j, :)
             end do
 
-            if (part%color(i) == 0) then
-                part%gradR(i, :) = part%R * ni0
-            else
-                part%gradR(i, :) = part%R * ni1
-            end if
+            part%gradR(i, :) = part%R * ni
 
-            ! if (fnorme2(part%x(i, :) - part%centre) <= part%rayon - part%R + part%dx/2.0_rp) then
             if ( func_isInside(part%x(i, :)) ) then
                 part%nor(i, :) = 0.0_rp
             else
+                print *, i, fnorme2(ni)
                 if (part%color(i) == 0) then
-                    part%nor(i, :) = ni0 / fnorme2(ni0)
+                    part%nor(i, :) = -ni / fnorme2(ni)
                 else
-                    part%nor(i, :) = ni1 / fnorme2(ni1)
+                    part%nor(i, :) = ni / fnorme2(ni)
                 end if
             end if
         end do
