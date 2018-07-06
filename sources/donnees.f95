@@ -1,7 +1,6 @@
 ! ===========================================================================================================
 ! Module contenant les fonctions suivantes :
 !
-! ----------------------------------------------------------------------------------------------------
 !   subroutine set_DONNEES_SIGMA(valeur)
 !   subroutine readValues(nom_fichier, d_Omega, sigma, intervalle, n, bornes, centre, rayon)
 !   subroutine pave(d_Omega, n, bornes, nom_fichier, part)

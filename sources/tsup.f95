@@ -153,10 +153,10 @@ contains
         real(rp), dimension(SPH_D) :: r
         real(rp) :: length
 
-        A = 2.0_rp
-        B = -1.0_rp
-        h1 = 0.8_rp * part%R
-        h2 = 1.0_rp * part%R
+        ! A = 2.0_rp
+        ! B = -1.0_rp
+        ! h1 = 0.8_rp * part%R
+        ! h2 = 1.0_rp * part%R
 
         r = part%x(i, :) - part%x(j, :)
         length = fnorme2(r)
@@ -413,17 +413,12 @@ contains
         integer :: k
         real(rp) :: prod
 
-        if (fnorme2(part%x(i, :) - part%centre) <= part%rayon - part%R + part%dx/2.0_rp) then
-            ! particules intérieurs
-            part%div_nor(i) = 0.0_rp
-        else
-            ! particules périphériques
-            part%div_nor(i) = 0.0_rp
-            do k = 1, part%n
-                call prodScal(part%nor(k, :) - part%nor(i, :), part%dWij(i, k, :), prod)
-                part%div_nor(i) = part%div_nor(i) + part%w(k) * prod
-            end do
-        end if
+        ! particules périphériques
+        part%div_nor(i) = 0.0_rp
+        do k = 1, part%n
+            call prodScal(part%nor(k, :) - part%nor(i, :), part%dWij(i, k, :), prod)
+            part%div_nor(i) = part%div_nor(i) + part%w(k) * (part%color(k) - part%color(i)) * prod
+        end do
     end subroutine
 
 
@@ -446,12 +441,12 @@ contains
         integer :: k, j
 
         call set_div_nor(part, i)
-        ! >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-        if (part%div_nor(i) /= 0.0_rp) then
-            write (*, '("# i :",1I4,"     # div(ni) :",1F9.3,"     # 1/Rg :",1F6.1)'), &
-                i, -part%div_nor(i), 1.0_rp / 0.01_rp
-        end if
-        ! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        ! >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+        ! if (part%div_nor(i) /= 0.0_rp) then
+        !     write (*, '("# i :",1I4,"     # div(ni) :",1F9.3,"     # 1/Rg :",1F6.1)'), &
+            !         i, -part%div_nor(i), 1.0_rp / 0.01_rp
+        ! end if
+        ! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
         F = 0.0_rp
         do j = 1, i - 1
             call F_ij_rayon(sigma, i, j, part, Fij)

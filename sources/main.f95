@@ -41,7 +41,8 @@ PROGRAM main
     call cpu_time(t_start)
 
     ! lecture du fichier d'entrée
-    call readValues("../entrees/constantes", d_Omega, sigma, intervalle, n, bornes_ext, bornes_int, centre, rayon)
+    call readValues("../entrees/constantes", d_Omega, sigma, intervalle, n, &
+        bornes_ext, bornes_int, centre, rayon)
 
     ! choix du noyau SPH
     call set_W_SPH("wendland")

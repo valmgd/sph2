@@ -152,9 +152,9 @@ contains
         integer :: i
 
         open(unit=0, file=fichier)
-        do i = 1, size(x)
-            write (0, *) x(i), sol(i)
-        end do
+            do i = 1, size(x)
+                write (0, *) x(i), sol(i)
+            end do
         close(0)
     end subroutine saveSol
 
@@ -178,9 +178,9 @@ contains
         integer :: i
 
         open(unit=0, file=fichier)
-        do i = 1, n
-            write (0, *) x(i), mat(i, :)
-        end do
+            do i = 1, n
+                write (0, *) x(i), mat(i, :)
+            end do
         close(0)
     end subroutine saveMat
 
@@ -574,13 +574,13 @@ contains
         character(len = 2) :: test = "--"
 
         open(unit = 1, file = fichier)
-        read(1, *) test
-
-        do while (test /= balise)
             read(1, *) test
-        end do
 
-        read(1, *) readInteger
+            do while (test /= balise)
+                read(1, *) test
+            end do
+
+            read(1, *) readInteger
         close(1)
     end function
 
@@ -598,13 +598,13 @@ contains
         character(len = 2) :: test = "--"
 
         open(unit = 1, file = fichier)
-        read(1, *) test
-
-        do while (test /= balise)
             read(1, *) test
-        end do
 
-        read(1, *) readReal
+            do while (test /= balise)
+                read(1, *) test
+            end do
+
+            read(1, *) readReal
         close(1)
     end function
 
@@ -728,9 +728,9 @@ contains
         sh = shape(mat)
 
         open(unit = 10, file = fichier)
-        do i = 1, sh(1)
-            write (10, *) mat(i, :)
-        end do
+            do i = 1, sh(1)
+                write (10, *) mat(i, :)
+            end do
         close(10)
     end subroutine
 
