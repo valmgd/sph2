@@ -6,8 +6,8 @@ graphes/*.ps
 graphes/*.eps
 graphes/*.png
 
-objets/*.mod
-objets/*.o
+objects/*.mod
+objects/*.o
 
 run/truc
 run/.*.swp

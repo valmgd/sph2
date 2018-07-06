@@ -1,103 +1,78 @@
-# -----------------------------------------------------------------------------------------------------------
-#  variables
-# -----------------------------------------------------------------------------------------------------------
-# nom projet
-PROJECT = sph2
+# ===========================================================================================================
+# Variables.
+# ===========================================================================================================
+# Project name.
+PROJECT = sources
 
-#
-SOURCES = main.f95 donnees.f95 sph.f95 tsup.f95 kernel.f95 var.f95 math.f95
-
-OBJ_DIR = ../objets
+# Structure.
+OBJ_DIR = ../objects
 RUN_DIR = ../run
-
-OBJECTS = $(wildcard $(OBJ_DIR)/*.o)
-MODULES = $(wildcard $(OBJ_DIR)/*.mod)
-
-FC      = gfortran
-FLAGS   = -fbounds-check -J $(OBJ_DIR)
 EXEC    = truc
-OTHER   = ../entrees/constantes
+
+# Files to edit.
+SOURCES = main.f95 donnees.f95 sph.f95 tsup.f95 kernel.f95 var.f95 math.f95
+MODULES = donnees.mod sph.mod tsup.mod kernel.mod var.mod math.mod
+OBJECTS = main.o donnees.o sph.o tsup.o kernel.o var.o math.o
+OTHER   = Makefile ../entrees/constantes
 PDF     =
 
-#VPATH = $(OBJ_DIR)
+# Compilator informations.
+FC      = gfortran
+FLAGS   = -fbounds-check -J $(OBJ_DIR)
 
 
 
-# -----------------------------------------------------------------------------------------------------------
-#  compilation rules
-# -----------------------------------------------------------------------------------------------------------
-# exécutable
-$(RUN_DIR)/$(EXEC) : $(OBJ_DIR)/math.o \
-					 $(OBJ_DIR)/var.o \
-					 $(OBJ_DIR)/kernel.o \
-					 $(OBJ_DIR)/tsup.o \
-					 $(OBJ_DIR)/sph.o \
-					 $(OBJ_DIR)/donnees.o \
-	                 $(OBJ_DIR)/main.o
+# ===========================================================================================================
+# Compilationrules.
+# ===========================================================================================================
+# Exécutable
+$(RUN_DIR)/$(EXEC) : $(OBJ_DIR)/main.o \
+                     $(OBJ_DIR)/donnees.o \
+                     $(OBJ_DIR)/sph.o \
+                     $(OBJ_DIR)/tsup.o \
+                     $(OBJ_DIR)/kernel.o \
+                     $(OBJ_DIR)/var.o \
+                     $(OBJ_DIR)/math.o
 	$(FC) $(FLAGS) $(OBJ_DIR)/*.o -o $(RUN_DIR)/$(EXEC)
 
 
-
-# programme principal
+# Programme principal
 $(OBJ_DIR)/main.o : main.f95 \
-	                $(OBJ_DIR)/math.mod \
-					$(OBJ_DIR)/var.mod \
-					 $(OBJ_DIR)/kernel.mod \
-					 $(OBJ_DIR)/tsup.mod \
-					$(OBJ_DIR)/sph.mod \
-					$(OBJ_DIR)/donnees.mod
+                    $(OBJ_DIR)/sph.mod \
+                    $(OBJ_DIR)/donnees.mod
 	$(FC) $(FLAGS) -c main.f95 -o $(OBJ_DIR)/main.o
 
 
+# Modules
+$(OBJ_DIR)/donnees.o $(OBJ_DIR)/donnees.mod : donnees.f95 \
+                                              $(OBJ_DIR)/sph.mod
+	$(FC) $(FLAGS) -c donnees.f95 -o $(OBJ_DIR)/donnees.o
 
-# modules
+$(OBJ_DIR)/sph.o $(OBJ_DIR)/sph.mod : sph.f95 \
+                                      $(OBJ_DIR)/tsup.mod
+	$(FC) $(FLAGS) -c sph.f95 -o $(OBJ_DIR)/sph.o
+
+$(OBJ_DIR)/tsup.o $(OBJ_DIR)/tsup.mod : tsup.f95 \
+                                        $(OBJ_DIR)/var.mod \
+                                        $(OBJ_DIR)/kernel.mod
+	$(FC) $(FLAGS) -c tsup.f95 -o $(OBJ_DIR)/tsup.o
+
+$(OBJ_DIR)/kernel.o $(OBJ_DIR)/kernel.mod : kernel.f95 \
+                                            $(OBJ_DIR)/var.mod
+	$(FC) $(FLAGS) -c kernel.f95 -o $(OBJ_DIR)/kernel.o
+
+$(OBJ_DIR)/var.o $(OBJ_DIR)/var.mod : var.f95 \
+                                      $(OBJ_DIR)/math.mod
+	$(FC) $(FLAGS) -c var.f95 -o $(OBJ_DIR)/var.o
+
 $(OBJ_DIR)/math.o $(OBJ_DIR)/math.mod : math.f95
 	$(FC) $(FLAGS) -c math.f95 -o $(OBJ_DIR)/math.o
 
 
 
-$(OBJ_DIR)/var.o $(OBJ_DIR)/var.mod : var.f95 \
-	                                  $(OBJ_DIR)/math.mod
-	$(FC) $(FLAGS) -c var.f95 -o $(OBJ_DIR)/var.o
-
-
-$(OBJ_DIR)/kernel.o $(OBJ_DIR)/kernel.mod : kernel.f95 \
-	                                        $(OBJ_DIR)/math.mod \
-											$(OBJ_DIR)/var.mod
-	$(FC) $(FLAGS) -c kernel.f95 -o $(OBJ_DIR)/kernel.o
-
-
-
-$(OBJ_DIR)/tsup.o $(OBJ_DIR)/tsup.mod : tsup.f95 \
-	                                  $(OBJ_DIR)/math.mod \
-									  $(OBJ_DIR)/var.mod \
-									  $(OBJ_DIR)/kernel.mod
-	$(FC) $(FLAGS) -c tsup.f95 -o $(OBJ_DIR)/tsup.o
-
-
-
-$(OBJ_DIR)/sph.o $(OBJ_DIR)/sph.mod : sph.f95 \
-	                                  $(OBJ_DIR)/math.mod \
-									  $(OBJ_DIR)/var.mod \
-									  $(OBJ_DIR)/kernel.mod \
-									  $(OBJ_DIR)/tsup.mod
-	$(FC) $(FLAGS) -c sph.f95 -o $(OBJ_DIR)/sph.o
-
-
-
-$(OBJ_DIR)/donnees.o $(OBJ_DIR)/donnees.mod : donnees.f95 \
-	                                          $(OBJ_DIR)/math.mod \
-											  $(OBJ_DIR)/var.mod \
-									          $(OBJ_DIR)/kernel.mod \
-											  $(OBJ_DIR)/tsup.mod \
-											  $(OBJ_DIR)/sph.mod
-	$(FC) $(FLAGS) -c donnees.f95 -o $(OBJ_DIR)/donnees.o
-
-
-
-# -----------------------------------------------------------------------------------------------------------
+# ===========================================================================================================
 # phony targets
-# -----------------------------------------------------------------------------------------------------------
+# ===========================================================================================================
 # exécuter l'exécutable (utile pour utiliser F5 dans vim)
 .PHONY : make
 make :
@@ -111,29 +86,29 @@ clean :
 # effacer le contenu des dossiers d'entrees et de sorties
 .PHONY : del
 del :
-	rm -f ../sorties/*.dat ../graphes/*.eps ../graphes/*.ps ../graphes/*.png
+	rm -f sorties/*.dat graphes/*.eps graphes/*.ps graphes/*.png
 
 # ouvrir les fichiers du projet dans des onglets de vim
 .PHONY : open
 open :
-	@ vim -p $(SOURCES) Makefile Plot.gnu $(OTHER)
+	@ vim $(SOURCES) $(OTHER)
 
 # tout compiler et lancer gdb (segmentation fault)
 .PHONY : gdb
 gdb :
-	$(FC) -g $(SOURCES) -o $(EXEC) && gdb ./$(EXEC)
+	$(FC) -g $(SOURCES) -o $(EXEC) && (cd $(RUN_DIR); gdb ./$(EXEC))
 
 # clean et tarer le dossier
 .PHONY : tar
 tar :
 	make clean
-	cd ../..; tar -zcvf $(PROJECT).tar.gz $(PROJECT)
+	cd ..; tar -zcvf $(PROJECT).tar.gz $(PROJECT)
 
 # sauvegarder ancienne version
 .PHONY : save
 save :
 	make clean
-	cd ../..; cp -r $(PROJECT) old_$(PROJECT)
+	cd ..; cp -r $(PROJECT) old_$(PROJECT)
 
 .PHONY : pdf
 pdf :
