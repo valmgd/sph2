@@ -18,6 +18,73 @@ MODULE tsup
 contains
 
     ! =======================================================================================================
+    ! TYPE SETTING {{{
+    ! =======================================================================================================
+
+    ! -------------------------------------------------------------------------------------------------------
+    ! vecteur ni = R_SPH * \sum_j ( wj \nabla W_ij ) pour toute particule i
+    ! -------------------------------------------------------------------------------------------------------
+    ! part : liste des particules
+    ! n : vecteurs normaux non normalisés (en sortie)
+    subroutine set_gradR(part)
+        ! paramètres
+        type(Particules), intent(inout) :: part
+
+        ! variables locales
+        integer :: i, j, k
+        real(rp), dimension(SPH_D) :: ni, grad
+
+        do i = 1, part%n
+            ni = 0.0_rp
+            do j = 1, i - 1
+                ni = ni + part%w(j) * part%dWij(i, j, :)
+            end do
+
+            do j = i + 1, part%n
+                ni = ni + part%w(j) * part%dWij(i, j, :)
+            end do
+
+            part%gradR(i, :) = part%R * ni
+
+            if (fnorme2(part%x(i, :) - part%centre) <= part%rayon - part%R + part%dx/2.0_rp) then
+                part%nor(i, :) = 0.0_rp
+            else
+                part%nor(i, :) = ni / fnorme2(ni)
+            end if
+        end do
+    end subroutine
+
+
+
+    ! -------------------------------------------------------------------------------------------------------
+    ! div(ni) = div(gradR)
+    ! -------------------------------------------------------------------------------------------------------
+    subroutine set_div_nor(part, i)
+        ! paramètres
+        type(Particules), intent(inout) :: part
+        integer, intent(in) :: i
+
+        ! variables locales
+        integer :: k
+        real(rp) :: prod
+
+        if (fnorme2(part%x(i, :) - part%centre) <= part%rayon - part%R + part%dx/2.0_rp) then
+            ! particules intérieurs
+            part%div_nor(i) = 0.0_rp
+        else
+            ! particules périphériques
+            part%div_nor(i) = 0.0_rp
+            do k = 1, part%n
+                call prodScal(part%nor(k, :) - part%nor(i, :), part%dWij(i, k, :), prod)
+                part%div_nor(i) = part%div_nor(i) + part%w(k) * prod
+            end do
+        end if
+    end subroutine
+    ! }}}
+
+
+
+    ! =======================================================================================================
     ! TENSION SUPERFICIELLE AKINCI {{{
     ! =======================================================================================================
 
@@ -393,33 +460,6 @@ contains
             F = -4.0_rp * sigma * part%div_nor(i) * part%w(j) * part%dWij(i, j, :)
         else
             F = 0.0_rp
-        end if
-    end subroutine
-
-
-
-    ! -------------------------------------------------------------------------------------------------------
-    ! div(ni) = div(gradR)
-    ! -------------------------------------------------------------------------------------------------------
-    subroutine set_div_nor(part, i)
-        ! paramètres
-        type(Particules), intent(inout) :: part
-        integer, intent(in) :: i
-
-        ! variables locales
-        integer :: k
-        real(rp) :: prod
-
-        if (fnorme2(part%x(i, :) - part%centre) <= part%rayon - part%R + part%dx/2.0_rp) then
-            ! particules intérieurs
-            part%div_nor(i) = 0.0_rp
-        else
-            ! particules périphériques
-            part%div_nor(i) = 0.0_rp
-            do k = 1, part%n
-                call prodScal(part%nor(k, :) - part%nor(i, :), part%dWij(i, k, :), prod)
-                part%div_nor(i) = part%div_nor(i) + part%w(k) * prod
-            end do
         end if
     end subroutine
 

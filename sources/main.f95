@@ -45,7 +45,7 @@ PROGRAM main
 
     ! choix du noyau SPH
     call set_W_SPH("wendland")
-    !call set_W_SPH("liu")
+    ! call set_W_SPH("liu")
 
     ! -------------------------------------------------------------------------------------------------------
     ! création du maillage initial
@@ -63,8 +63,6 @@ PROGRAM main
     case default
         write (*, *) "choix de scénario invalide"
     end select
-
-    ! call normale_surface_GR(p, "../sorties/normale.dat")
 
     ! -------------------------------------------------------------------------------------------------------
     ! tension de surface
@@ -165,8 +163,8 @@ PROGRAM main
     write (*, '("### temps d''éxecution :",1F6.2)'), t_end - t_start
     call rm_Particules(p)
     deallocate(bornes, centre)
-    write (*, '(/,/,/,"_______________",/,"CALLING GNUPLOT")')
-    call system("gnuplot ../sources/Plot.gnu")
-    write (*, '("Done.")')
+    ! write (*, '(/,/,/,"_______________",/,"CALLING GNUPLOT")')
+    ! call system("gnuplot ../sources/Plot.gnu")
+    ! write (*, '("Done.")')
 
 END PROGRAM main

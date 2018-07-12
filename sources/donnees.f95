@@ -294,36 +294,6 @@ contains
 
 
     ! -------------------------------------------------------------------------------------------------------
-    ! calcul GR(1)
-    ! -------------------------------------------------------------------------------------------------------
-    ! subroutine normale_surface_GR(part, nom_fichier)
-    !     ! paramètres
-    !     type(Particules), intent(in) :: part
-    !     character(len=*), intent(in) :: nom_fichier
-
-    !     ! variables locales
-    !     integer :: i, k
-    !     real(rp), dimension(SPH_D) :: grad
-    !     real(rp), dimension(part%n, SPH_D * 2) :: nvec
-    !     real(rp) :: length
-
-    !     length = 0.5_rp * (fnorme2(part%x(part%n/2, :) - part%x(part%n/2+1, :)))
-
-    !     do i = 1, part%n
-    !         call GR(i, part, (/ (1.0_rp, k=1, part%n) /), grad)
-    !         if (fnorme2(grad) > 10.0**(-10)) then
-    !             nvec(i, :) = (/ part%x(i, :), (grad/fnorme2(grad))*length /)
-    !         else
-    !             nvec(i, :) = 0.0_rp
-    !         end if
-    !     end do
-
-    !     call writeMat(nvec, nom_fichier)
-    ! end subroutine
-
-
-
-    ! -------------------------------------------------------------------------------------------------------
     ! somme FTS sur quartiers
     ! -------------------------------------------------------------------------------------------------------
     subroutine quarter(part, centre)
