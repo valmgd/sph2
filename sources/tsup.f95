@@ -76,25 +76,24 @@ contains
     ! sigma : coefficient de tension de surface (gamma)
     ! i : numéro d'une particule
     ! part : liste des particules
-    subroutine FTS_akinci(sigma, i, part, F)
+    subroutine FTS_akinci(sigma, i, part)
         ! paramètres
         real(rp), intent(in) :: sigma
         integer, intent(in) :: i
         type(Particules), intent(inout) :: part
-        real(rp), dimension(SPH_D), intent(out) :: F
 
         ! variables locales
         real(rp), dimension(SPH_D) :: ni, nj, Fij
         integer :: k, j
 
-        F = 0.0_rp
+        part%fts(i, :) = 0.0_rp
         do j = 1, i - 1
             call F_ij_akinci(sigma, i, j, part, Fij)
-            F = F + Fij
+            part%fts(i, :) = part%fts(i, :) + Fij
         end do
         do j = i + 1, part%n
             call F_ij_akinci(sigma, i, j, part, Fij)
-            F = F + Fij
+            part%fts(i, :) = part%fts(i, :) + Fij
         end do
     end subroutine
     ! }}}
@@ -173,27 +172,26 @@ contains
     ! -------------------------------------------------------------------------------------------------------
     ! force de tension de surface Kordilla
     ! -------------------------------------------------------------------------------------------------------
-    subroutine FTS_liu(sigma, i, part, F)
+    subroutine FTS_liu(sigma, i, part)
         ! paramètres
         ! paramètres
         real(rp), intent(in) :: sigma
         integer, intent(in) :: i
         type(Particules), intent(inout) :: part
-        real(rp), dimension(SPH_D), intent(out) :: F
 
         ! variables locales
         real(rp), dimension(SPH_D) :: Fij
         integer :: k, j
 
-        F = 0.0_rp
+        part%fts(i, :) = 0.0_rp
 
         do j = 1, i - 1
-            call F_ij_liu(sigma, i, j, part, F)
-            F = F + part%w(j) * Fij
+            call F_ij_liu(sigma, i, j, part, part%fts(i, :))
+            part%fts(i, :) = part%fts(i, :) + part%w(j) * Fij
         end do
         do j = i + 1, part%n
-            call F_ij_liu(sigma, i, j, part, F)
-            F = F + part%w(j) * Fij
+            call F_ij_liu(sigma, i, j, part, part%fts(i, :))
+            part%fts(i, :) = part%fts(i, :) + part%w(j) * Fij
         end do
     end subroutine
     ! }}}
@@ -348,25 +346,24 @@ contains
     ! sigma : coefficient de tension de surface (gamma)
     ! i : numéro d'une particule
     ! part : liste des particules
-    subroutine FTS_new(sigma, i, part, F)
+    subroutine FTS_new(sigma, i, part)
         ! paramètres
         real(rp), intent(in) :: sigma
         integer, intent(in) :: i
         type(Particules), intent(inout) :: part
-        real(rp), dimension(SPH_D), intent(out) :: F
 
         ! variables locales
         real(rp), dimension(SPH_D) :: ni, nj, Fij
         integer :: k, j
 
-        F = 0.0_rp
+        part%fts(i, :) = 0.0_rp
         do j = 1, i - 1
             call F_ij_new(sigma, i, j, part, Fij)
-            F = F + Fij
+            part%fts(i, :) = part%fts(i, :) + Fij
         end do
         do j = i + 1, part%n
             call F_ij_new(sigma, i, j, part, Fij)
-            F = F + Fij
+            part%fts(i, :) = part%fts(i, :) + Fij
         end do
     end subroutine
     ! }}}
@@ -434,32 +431,25 @@ contains
     ! sigma : coefficient de tension de surface (gamma)
     ! i : numéro d'une particule
     ! part : liste des particules
-    subroutine FTS_rayon(sigma, i, part, F)
+    subroutine FTS_rayon(sigma, i, part)
         ! paramètres
         real(rp), intent(in) :: sigma
         integer, intent(in) :: i
         type(Particules), intent(inout) :: part
-        real(rp), dimension(SPH_D), intent(out) :: F
 
         ! variables locales
         real(rp), dimension(SPH_D) :: ni, nj, Fij
         integer :: k, j
 
         call set_div_nor(part, i)
-        ! >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-        if (part%div_nor(i) /= 0.0_rp) then
-            write (*, '("# i :",1I4,"     # div(ni) :",1F9.3,"     # 1/Rg :",1F6.1)'), &
-                i, -part%div_nor(i), 1.0_rp / 0.01_rp
-        end if
-        ! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-        F = 0.0_rp
+        part%fts(i, :) = 0.0_rp
         do j = 1, i - 1
             call F_ij_rayon(sigma, i, j, part, Fij)
-            F = F + Fij
+            part%fts(i, :) = part%fts(i, :) + Fij
         end do
         do j = i + 1, part%n
             call F_ij_new(sigma, i, j, part, Fij)
-            F = F + Fij
+            part%fts(i, :) = part%fts(i, :) + Fij
         end do
     end subroutine
     ! }}}
@@ -478,13 +468,12 @@ contains
     subroutine set_fts(FTS_func, sigma, part)
         ! paramètres
         interface
-            subroutine FTS_func(sigma_, i_, part_, F)
+            subroutine FTS_func(sigma_, i_, part_)
                 use var
                 real(rp), intent(in) :: sigma_
                 integer, intent(in) :: i_
                 type(Particules), intent(inout) :: part_
                 real(rp) :: part
-                real(rp), dimension(SPH_D), intent(out) :: F
             end subroutine
         end interface
         real(rp), intent(in) :: sigma
@@ -494,7 +483,7 @@ contains
         integer :: i
 
         do i = 1, part%n
-            call FTS_func(sigma, i, part, part%fts(i, :))
+            call FTS_func(sigma, i, part)
         end do
     end subroutine
     ! }}}

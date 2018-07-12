@@ -7,7 +7,6 @@
 !   subroutine bulle(d_Omega, n, centre, rayon, nom_fichier, part)
 !   subroutine init_var_bulle(centreBulle, rayonBulle, part)
 !   subroutine init_var_pave(bornes, part)
-!   subroutine write_var(part, f_rho, f_u, f_P)
 !   subroutine normale_surface_GR(part, nom_fichier)
 !   subroutine quarter(part, centre)
 ! ===========================================================================================================
@@ -149,40 +148,42 @@ contains
         part%n = size(part%x, 1)
         allocate(part%w(part%n), part%rho(part%n), part%u(part%n, d_Omega), part%P(part%n))
         allocate(part%gradR(part%n, d_Omega), part%fts(part%n, d_Omega), part%dWij(part%n, part%n, SPH_D))
-        allocate(part%div_nor(part%n), part%nor(part%n, d_Omega))
+        allocate(part%div_nor(part%n), part%nor(part%n, d_Omega), part%centre(d_Omega))
+        allocate(part%grad_P(part%n, d_Omega), part%dmu(part%n, d_Omega))
         part%w = dx**d_Omega
         part%R = SPH_I * dx
 
-        call writeMat(part%x, nom_fichier // "_points.dat")
-        open(unit = 10, file = nom_fichier // "_d.dat")
-        write (10, *) d_Omega
-        close(10)
-        if (d_Omega == 2) then
-            open(unit = 10, file = nom_fichier // "_enveloppe.dat")
-            write (10, *) bornes(1, 1), bornes(2, 1)
-            write (10, *) bornes(1, 2), bornes(2, 1)
-            write (10, *) bornes(1, 2), bornes(2, 2)
-            write (10, *) bornes(1, 1), bornes(2, 2)
-            write (10, *) bornes(1, 1), bornes(2, 1)
-            close(10)
-        else if (d_Omega == 3) then
-            open(unit = 10, file = nom_fichier // "_enveloppe.dat")
-            write (10, *) bornes(1, 1), bornes(2, 1), bornes(3, 1)
-            write (10, *) bornes(1, 1), bornes(2, 1), bornes(3, 2)
-            write (10, *) bornes(1, 1), bornes(2, 2), bornes(3, 2)
-            write (10, *) bornes(1, 1), bornes(2, 2), bornes(3, 1)
-            write (10, *) bornes(1, 1), bornes(2, 1), bornes(3, 1)
-            write (10, *)
+        ! Décommenter pour enregistrer l'enveloppe
+        ! call writeMat(part%x, nom_fichier // "_points.dat")
+        ! open(unit = 10, file = nom_fichier // "_d.dat")
+        ! write (10, *) d_Omega
+        ! close(10)
+        ! if (d_Omega == 2) then
+        !     open(unit = 10, file = nom_fichier // "_enveloppe.dat")
+        !     write (10, *) bornes(1, 1), bornes(2, 1)
+        !     write (10, *) bornes(1, 2), bornes(2, 1)
+        !     write (10, *) bornes(1, 2), bornes(2, 2)
+        !     write (10, *) bornes(1, 1), bornes(2, 2)
+        !     write (10, *) bornes(1, 1), bornes(2, 1)
+        !     close(10)
+        ! else if (d_Omega == 3) then
+        !     open(unit = 10, file = nom_fichier // "_enveloppe.dat")
+        !     write (10, *) bornes(1, 1), bornes(2, 1), bornes(3, 1)
+        !     write (10, *) bornes(1, 1), bornes(2, 1), bornes(3, 2)
+        !     write (10, *) bornes(1, 1), bornes(2, 2), bornes(3, 2)
+        !     write (10, *) bornes(1, 1), bornes(2, 2), bornes(3, 1)
+        !     write (10, *) bornes(1, 1), bornes(2, 1), bornes(3, 1)
+        !     write (10, *)
 
-            write (10, *) bornes(1, 2), bornes(2, 1), bornes(3, 1)
-            write (10, *) bornes(1, 2), bornes(2, 1), bornes(3, 2)
-            write (10, *) bornes(1, 2), bornes(2, 2), bornes(3, 2)
-            write (10, *) bornes(1, 2), bornes(2, 2), bornes(3, 1)
-            write (10, *) bornes(1, 2), bornes(2, 1), bornes(3, 1)
-            close(10)
-        end if
+        !     write (10, *) bornes(1, 2), bornes(2, 1), bornes(3, 1)
+        !     write (10, *) bornes(1, 2), bornes(2, 1), bornes(3, 2)
+        !     write (10, *) bornes(1, 2), bornes(2, 2), bornes(3, 2)
+        !     write (10, *) bornes(1, 2), bornes(2, 2), bornes(3, 1)
+        !     write (10, *) bornes(1, 2), bornes(2, 1), bornes(3, 1)
+        !     close(10)
+        ! end if
 
-        call writeMat(transpose(bornes), nom_fichier // "_scale.dat")
+        ! call writeMat(transpose(bornes), nom_fichier // "_scale.dat")
     end subroutine
 
 
@@ -218,36 +219,38 @@ contains
         allocate(part%w(part%n), part%rho(part%n), part%u(part%n, d_Omega), part%P(part%n))
         allocate(part%gradR(part%n, d_Omega), part%fts(part%n, d_Omega), part%dWij(part%n, part%n, SPH_D))
         allocate(part%div_nor(part%n), part%nor(part%n, d_Omega), part%centre(d_Omega))
+        allocate(part%grad_P(part%n, d_Omega), part%dmu(part%n, d_Omega))
         part%centre = centre
         part%rayon = rayon
         part%w = dx**d_Omega
         part%R = SPH_I * dx
 
+        ! Décommenter pour sauvegarder l'enveloppe.
         ! sauvegarde particules et dimension
-        call writeMat(part%x, nom_fichier // "_points.dat")
-        open(unit = 10, file = nom_fichier // "_d.dat")
-        write (10, *) d_Omega
-        close(10)
+        ! call writeMat(part%x, nom_fichier // "_points.dat")
+        ! open(unit = 10, file = nom_fichier // "_d.dat")
+        ! write (10, *) d_Omega
+        ! close(10)
 
-        ! construction enveloppe
-        t = linspace(0.0_rp, 2.0_rp * pi, 100)
-        do i = 1, 100
-            cercle(i, :) = centre + rayon * (/ cos(t(i)), sin(t(i)) /)
-        end do
+        ! ! construction enveloppe
+        ! t = linspace(0.0_rp, 2.0_rp * pi, 100)
+        ! do i = 1, 100
+        !     cercle(i, :) = centre + rayon * (/ cos(t(i)), sin(t(i)) /)
+        ! end do
 
-        ! sauvegarde enveloppe
-        if (d_Omega == 2) then
-            call writeMat(cercle, nom_fichier // "_enveloppe.dat")
-        else if (d_Omega == 3) then
-            open(unit = 10, file = nom_fichier // "_enveloppe.dat")
-            write (10, *)
-            close(10)
-        end if
+        ! ! sauvegarde enveloppe
+        ! if (d_Omega == 2) then
+        !     call writeMat(cercle, nom_fichier // "_enveloppe.dat")
+        ! else if (d_Omega == 3) then
+        !     open(unit = 10, file = nom_fichier // "_enveloppe.dat")
+        !     write (10, *)
+        !     close(10)
+        ! end if
 
-        open(unit = 10, file = nom_fichier // "_scale.dat")
-        write (10, *) centre - rayon
-        write (10, *) centre + rayon
-        close(10)
+        ! open(unit = 10, file = nom_fichier // "_scale.dat")
+        ! write (10, *) centre - rayon
+        ! write (10, *) centre + rayon
+        ! close(10)
     end subroutine
 
 
@@ -291,58 +294,32 @@ contains
 
 
     ! -------------------------------------------------------------------------------------------------------
-    ! enregistres variables rho u P (éq d'Euler)
-    ! -------------------------------------------------------------------------------------------------------
-    subroutine write_var(part, f_rho, f_u, f_P)
-        ! paramètres
-        type(Particules), intent(in) :: part
-        character(len=*), intent(in) :: f_rho, f_u, f_P
-
-        ! variables locales
-        integer :: i
-
-        open(unit = 10, file = f_rho)
-        open(unit = 20, file = f_u)
-        open(unit = 30, file = f_P)
-        do i = 1, part%n
-            write (10, *) part%x(i, :), part%rho(i)
-            write (20, *) part%x(i, :), part%u(i, :)
-            write (30, *) part%x(i, :), part%P(i)
-        end do
-        close(10)
-        close(20)
-        close(30)
-    end subroutine
-
-
-
-    ! -------------------------------------------------------------------------------------------------------
     ! calcul GR(1)
     ! -------------------------------------------------------------------------------------------------------
-    subroutine normale_surface_GR(part, nom_fichier)
-        ! paramètres
-        type(Particules), intent(in) :: part
-        character(len=*), intent(in) :: nom_fichier
+    ! subroutine normale_surface_GR(part, nom_fichier)
+    !     ! paramètres
+    !     type(Particules), intent(in) :: part
+    !     character(len=*), intent(in) :: nom_fichier
 
-        ! variables locales
-        integer :: i, k
-        real(rp), dimension(SPH_D) :: grad
-        real(rp), dimension(part%n, SPH_D * 2) :: nvec
-        real(rp) :: length
+    !     ! variables locales
+    !     integer :: i, k
+    !     real(rp), dimension(SPH_D) :: grad
+    !     real(rp), dimension(part%n, SPH_D * 2) :: nvec
+    !     real(rp) :: length
 
-        length = 0.5_rp * (fnorme2(part%x(part%n/2, :) - part%x(part%n/2+1, :)))
+    !     length = 0.5_rp * (fnorme2(part%x(part%n/2, :) - part%x(part%n/2+1, :)))
 
-        do i = 1, part%n
-            call GR(i, part, (/ (1.0_rp, k=1, part%n) /), grad)
-            if (fnorme2(grad) > 10.0**(-10)) then
-                nvec(i, :) = (/ part%x(i, :), (grad/fnorme2(grad))*length /)
-            else
-                nvec(i, :) = 0.0_rp
-            end if
-        end do
+    !     do i = 1, part%n
+    !         call GR(i, part, (/ (1.0_rp, k=1, part%n) /), grad)
+    !         if (fnorme2(grad) > 10.0**(-10)) then
+    !             nvec(i, :) = (/ part%x(i, :), (grad/fnorme2(grad))*length /)
+    !         else
+    !             nvec(i, :) = 0.0_rp
+    !         end if
+    !     end do
 
-        call writeMat(nvec, nom_fichier)
-    end subroutine
+    !     call writeMat(nvec, nom_fichier)
+    ! end subroutine
 
 
 

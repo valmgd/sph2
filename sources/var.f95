@@ -31,28 +31,32 @@ MODULE var
     type :: Particules
         ! nombre de particules
         integer :: n
-        ! coordonnées des particules
-        real(rp), dimension(:, :), allocatable :: x
-        ! volume des particules
-        real(rp), dimension(:), allocatable :: w
 
-        ! rayon SPH
+        ! rayon SPH et pas d'espace maillage initial
         real(rp) :: R
         real(rp) :: dx
 
-        ! gradient de la fc cste R, normale à la surface, divergence de la normale, tension de surface
-        real(rp), dimension(:, :), allocatable :: gradR
-        real(rp), dimension(:, :), allocatable :: nor
-        real(rp), dimension(:), allocatable :: div_nor
-        real(rp), dimension(:, :), allocatable :: fts
-
-        ! noyau
-        real(rp), dimension(:, :, :), allocatable :: dWij
+        ! coordonnées et volume des particules
+        real(rp), dimension(:, :), allocatable :: x
+        real(rp), dimension(:), allocatable :: w
 
         ! variables équations d'Euler
         real(rp), dimension(:), allocatable :: rho
         real(rp), dimension(:, :), allocatable :: u
         real(rp), dimension(:), allocatable :: P
+
+        ! gradient de la fc cste R, normale à la surface, divergence de la normale
+        real(rp), dimension(:, :), allocatable :: gradR
+        real(rp), dimension(:, :), allocatable :: nor
+        real(rp), dimension(:), allocatable :: div_nor
+
+        ! gradient de pression, tension superficielle, quantité de mouvement
+        real(rp), dimension(:, :), allocatable :: grad_P
+        real(rp), dimension(:, :), allocatable :: fts
+        real(rp), dimension(:, :), allocatable :: dmu
+
+        ! noyau
+        real(rp), dimension(:, :, :), allocatable :: dWij
 
         ! infos surface libre
         real(rp), dimension(:), allocatable :: centre
@@ -89,6 +93,7 @@ contains
         ! paramètres
         type(Particules), intent(inout) :: part
 
+        ! coordonnées et volume des particules
         if (allocated(part%x)) then
             deallocate(part%x)
         end if
@@ -96,23 +101,7 @@ contains
             deallocate(part%w)
         end if
 
-        if (allocated(part%gradR)) then
-            deallocate(part%gradR)
-        end if
-        if (allocated(part%nor)) then
-            deallocate(part%nor)
-        end if
-        if (allocated(part%div_nor)) then
-            deallocate(part%div_nor)
-        end if
-        if (allocated(part%fts)) then
-            deallocate(part%fts)
-        end if
-
-        if (allocated(part%dWij)) then
-            deallocate(part%dWij)
-        end if
-
+        ! variables équations d'Euler
         if (allocated(part%rho)) then
             deallocate(part%rho)
         end if
@@ -123,9 +112,86 @@ contains
             deallocate(part%P)
         end if
 
+        ! gradient de la fc cste R, normale à la surface, divergence de la normale
+        if (allocated(part%gradR)) then
+            deallocate(part%gradR)
+        end if
+        if (allocated(part%nor)) then
+            deallocate(part%nor)
+        end if
+        if (allocated(part%div_nor)) then
+            deallocate(part%div_nor)
+        end if
+
+        ! gradient de pression, tension superficielle, quantité de mouvement
+        if (allocated(part%grad_P)) then
+            deallocate(part%grad_P)
+        end if
+        if (allocated(part%fts)) then
+            deallocate(part%fts)
+        end if
+        if (allocated(part%dmu)) then
+            deallocate(part%dmu)
+        end if
+
+        ! noyau
+        if (allocated(part%dWij)) then
+            deallocate(part%dWij)
+        end if
+
+        ! infos surface libre
         if (allocated(part%centre)) then
             deallocate(part%centre)
         end if
+    end subroutine
+
+
+
+    ! -------------------------------------------------------------------------------------------------------
+    ! -------------------------------------------------------------------------------------------------------
+    subroutine write_Particules(part, dir)
+        ! paramètres
+        type(Particules), intent(in) :: part
+        character(len=*), intent(in) :: dir
+
+        ! variables locales
+        integer :: i
+
+        open(unit = 10, file = dir // '/x.dat')
+        open(unit = 20, file = dir // '/w.dat')
+        open(unit = 30, file = dir // '/rho.dat')
+        open(unit = 40, file = dir // '/u.dat')
+        open(unit = 50, file = dir // '/P.dat')
+        open(unit = 60, file = dir // '/nor.dat')
+        open(unit = 70, file = dir // '/div_nor.dat')
+        open(unit = 80, file = dir // '/grad_P.dat')
+        open(unit = 90, file = dir // '/fts.dat')
+        open(unit = 100, file = dir // '/dmu.dat')
+        do i = 1, part%n
+            write (10, *) part%x(i, :)
+            write (20, *) part%w(i)
+
+            write (30, *) part%rho(i)
+            write (40, *) part%u(i, :)
+            write (50, *) part%P(i)
+
+            write (60, *) part%nor(i, :)
+            write (70, *) part%div_nor(i)
+
+            write (80, *) part%grad_P(i, :)
+            write (90, *) part%fts(i, :)
+            write (100, *) part%dmu(i, :)
+        end do
+        close(10)
+        close(20)
+        close(30)
+        close(40)
+        close(50)
+        close(60)
+        close(70)
+        close(80)
+        close(90)
+        close(100)
     end subroutine
 
 END MODULE var

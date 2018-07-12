@@ -94,14 +94,6 @@ contains
                 part%nor(i, :) = ni / fnorme2(ni)
             end if
         end do
-
-        ! >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-        open(unit = 10, file = "../sorties/nor.dat")
-        do i = 1, part%n
-            write (10, *), part%x(i, :), part%nor(i, :)
-        end do
-        close(10)
-        ! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     end subroutine
     ! }}}
 
@@ -387,7 +379,7 @@ contains
     ! -------------------------------------------------------------------------------------------------------
     subroutine iter_SPH(part, centre)
         ! paramètres
-        type(Particules), intent(in) :: part
+        type(Particules), intent(inout) :: part
         real(rp), dimension(SPH_D), intent(in) :: centre
 
         ! variables locales
@@ -398,24 +390,14 @@ contains
         real(rp) :: prod
 
         do i = 1, part%n
-            call GR_p(i, part, part%P, grad_pressure)
-            d_rwu_dt(i, :) = part%fts(i, :) - part%w(i) * grad_pressure
-            ! print *, part%fts(i, :), part%w(i) * grad_pressure
+            call GR_p(i, part, part%P, part%grad_P(i, :))
+            d_rwu_dt(i, :) = part%fts(i, :) - part%w(i) * part%grad_P(i, :)
 
-            !call prodScal(part%x(i, :) - centre, d_rwu_dt(i, :), prod)
-            !plot_vec(i, :) = (/ part%x(i, :), d_rwu_dt(i, :), prod /)
-
-            !call prodScal(part%x(i, :) - centre, part%w(i) * grad_pressure, prod)
-            !plot_vec(i, :) = (/ part%x(i, :), part%w(i) * grad_pressure, prod /)
-
-            call prodScal(part%x(i, :) - centre, part%fts(i, :), prod)
-            plot_vec(i, :) = (/ part%x(i, :), part%fts(i, :), prod /)
+            ! call prodScal(part%x(i, :) - centre, part%fts(i, :), prod)
+            ! plot_vec(i, :) = (/ part%x(i, :), part%fts(i, :), prod /)
         end do
-        !print *, "sum_i [ -w_i GR_p(P)_i + (FTS)_i ] =", sum(d_rwu_dt(:, 1)), sum(d_rwu_dt(:, 2))
-        !print *, sum(d_rwu_dt(:, 1)), sum(d_rwu_dt(:, 2))
-        !call affMat(d_rwu_dt)
 
-        call writeMat(plot_vec, "../sorties/plot_vec.dat")
+        ! call writeMat(plot_vec, "../sorties/plot_vec.dat")
     end subroutine
     ! }}}
 

@@ -35,9 +35,9 @@ PROGRAM main
 
 
 
-    ! -------------------------------------------------------------------------------------------------------
+    ! =======================================================================================================
     ! Computation
-    ! -------------------------------------------------------------------------------------------------------
+    ! =======================================================================================================
     call cpu_time(t_start)
 
     ! lecture du fichier d'entrée
@@ -47,7 +47,9 @@ PROGRAM main
     call set_W_SPH("wendland")
     !call set_W_SPH("liu")
 
+    ! -------------------------------------------------------------------------------------------------------
     ! création du maillage initial
+    ! -------------------------------------------------------------------------------------------------------
     print *, "Create mesh. Thinking..."
     select case (choix)
     case (scenario_a)
@@ -62,17 +64,18 @@ PROGRAM main
         write (*, *) "choix de scénario invalide"
     end select
 
-    call normale_surface_GR(p, "../sorties/normale.dat")
-    call write_var(p, "../sorties/rho.dat", "../sorties/u.dat", "../sorties/P.dat")
+    ! call normale_surface_GR(p, "../sorties/normale.dat")
 
-
-
+    ! -------------------------------------------------------------------------------------------------------
     ! tension de surface
+    ! -------------------------------------------------------------------------------------------------------
     print *, "Set surface tension. Thinking..."
     ! call set_fts(FTS_akinci, DONNEES_SIGMA, p)
     ! call set_fts(FTS_liu, DONNEES_SIGMA, p)
     ! call set_fts(FTS_new, DONNEES_SIGMA, p)
     call set_fts(FTS_rayon, DONNEES_SIGMA, p)
+
+
 
     ! schéma SPH (équation 2)
     print *, "Compute mvt quantity. Thinking..."
@@ -82,37 +85,42 @@ PROGRAM main
 
 
 
-    ! -------------------------------------------------------------------------------------------------------
-    ! Affichages et vérifs
-    ! -------------------------------------------------------------------------------------------------------
+
+    ! =======================================================================================================
+    ! Post traitement : sauvegardes, affichages et vérifs
+    ! =======================================================================================================
+    call write_Particules(p, '../sorties')
+
     print *, "________________________________________________"
     print *, "                     |"
     print *, "Nombre de particules |", p%n
     print *, "dx                   |", p%dx
     print *, "Rayon SPH            |", p%R
     print *, "_____________________|__________________________"
+
     call quarter(p, centre)
 
 
 
 
 
+    ! Vérifs et sorties de graphes {{{
     ! >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     ! vérif intégrale sur l'intersection des deux disques {{{
-    centre1 = 0.0_rp
-    centre2 = p%x(p%n, :)
-    somme = 0.0_rp
-    do i = 1, p%n - 1
-        x = p%x(p%n, :)
-        y = p%x(i, :)
-        point = x - y
-        if ((fnorme2(y - centre1) <= rayon) .and. (fnorme2(y - centre2) <= p%R)) then
-            call dx_W_SPH(point, p%R, grad)
-            somme = somme + grad * p%dx**2
-            ! print *, i, somme, grad
-        end if
-    end do
-    print *, "Intégrale sur l'intersection :", somme
+    ! centre1 = 0.0_rp
+    ! centre2 = p%x(p%n, :)
+    ! somme = 0.0_rp
+    ! do i = 1, p%n - 1
+    !     x = p%x(p%n, :)
+    !     y = p%x(i, :)
+    !     point = x - y
+    !     if ((fnorme2(y - centre1) <= rayon) .and. (fnorme2(y - centre2) <= p%R)) then
+    !         call dx_W_SPH(point, p%R, grad)
+    !         somme = somme + grad * p%dx**2
+    !         ! print *, i, somme, grad
+    !     end if
+    ! end do
+    ! print *, "Intégrale sur l'intersection :", somme
     ! }}}
     ! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
@@ -120,32 +128,33 @@ PROGRAM main
 
     ! >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     ! affichage fonction cohésion {{{
-    p%R = 1.0_rp
-    rr = linspace(0.0_rp, 1.0_rp, 1000)
+    ! p%R = 1.0_rp
+    ! rr = linspace(0.0_rp, 1.0_rp, 1000)
 
     ! akinci
-    do i = 1, 1000
-        Ck(i) = C_akinci(rr(i), p%R)
-    end do
-    call saveSol(rr, Ck, "../sorties/Cakinci.dat")
+    ! do i = 1, 1000
+    !     Ck(i) = C_akinci(rr(i), p%R)
+    ! end do
+    ! call saveSol(rr, Ck, "../sorties/Cakinci.dat")
 
     ! liu (kordilla)
-    do i = 1, 1000
-        Ck(i) = C_liu(rr(i), p%R)
-        AW1(i) =  2.0_rp * W_SPH_liu((/ rr(i), 0.0_rp /), 0.8_rp * p%R)
-        BW2(i) = -1.0_rp * W_SPH_liu((/ rr(i), 0.0_rp /), 1.0_rp * p%R)
-    end do
-    call saveSol(rr, AW1, "../sorties/AW1.dat")
-    call saveSol(rr, BW2, "../sorties/BW2.dat")
-    call saveSol(rr, Ck, "../sorties/Cliu.dat")
+    ! do i = 1, 1000
+    !     Ck(i) = C_liu(rr(i), p%R)
+    !     AW1(i) =  2.0_rp * W_SPH_liu((/ rr(i), 0.0_rp /), 0.8_rp * p%R)
+    !     BW2(i) = -1.0_rp * W_SPH_liu((/ rr(i), 0.0_rp /), 1.0_rp * p%R)
+    ! end do
+    ! call saveSol(rr, AW1, "../sorties/AW1.dat")
+    ! call saveSol(rr, BW2, "../sorties/BW2.dat")
+    ! call saveSol(rr, Ck, "../sorties/Cliu.dat")
 
     ! new
-    do i = 1, 1000
-        Ck(i) = C_new_5(rr(i), p%R)
-    end do
-    call saveSol(rr, Ck, "../sorties/Cnew.dat")
+    ! do i = 1, 1000
+    !     Ck(i) = C_new_5(rr(i), p%R)
+    ! end do
+    ! call saveSol(rr, Ck, "../sorties/Cnew.dat")
     ! }}}
     ! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    ! }}}
 
 
 
