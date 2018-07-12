@@ -13,7 +13,7 @@ EXEC    = truc
 SOURCES = main.f95 donnees.f95 sph.f95 tsup.f95 kernel.f95 var.f95 math.f95
 MODULES = donnees.mod sph.mod tsup.mod kernel.mod var.mod math.mod
 OBJECTS = main.o donnees.o sph.o tsup.o kernel.o var.o math.o
-OTHER   = Makefile ../entrees/constantes Plot.gnu
+OTHER   = Makefile ../entrees/constantes
 PDF     =
 
 # Compilator informations.

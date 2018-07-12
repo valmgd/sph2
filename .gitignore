@@ -16,3 +16,5 @@ sorties/*.dat
 sorties/.*.swp
 
 sources/.*.swp
+
+pyplot/__*__

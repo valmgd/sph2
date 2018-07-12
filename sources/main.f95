@@ -163,8 +163,6 @@ PROGRAM main
     write (*, '("### temps d''éxecution :",1F6.2)'), t_end - t_start
     call rm_Particules(p)
     deallocate(bornes, centre)
-    ! write (*, '(/,/,/,"_______________",/,"CALLING GNUPLOT")')
-    ! call system("gnuplot ../sources/Plot.gnu")
-    ! write (*, '("Done.")')
+    call system('../pyplot/main.py')
 
 END PROGRAM main
