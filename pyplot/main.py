@@ -22,6 +22,8 @@ grad_P  = np.loadtxt('../sorties/grad_P.dat')
 fts     = np.loadtxt('../sorties/fts.dat')
 dmu     = np.loadtxt('../sorties/dmu.dat')
 
+normales= np.loadtxt('../sorties/normales.dat')
+
 
 
 # -----------------------------------------------------------------------------------------------------------
@@ -37,6 +39,14 @@ fig.tight_layout()
 
 fig, ax = plot_particles_2D(x, P)
 ax.quiver(x[:, 0], x[:, 1], nor[:, 0], nor[:, 1],
+    angles='xy', scale=50, label='Mvt quantity', color='black')
+ax.legend(loc='best', fontsize='x-large', fancybox=True, framealpha=0.5)
+fig.tight_layout()
+
+
+
+fig, ax = plot_particles_2D(x, P)
+ax.quiver(x[:, 0], x[:, 1], normales[:, 0], normales[:, 1],
     angles='xy', scale=50, label='Mvt quantity', color='black')
 ax.legend(loc='best', fontsize='x-large', fancybox=True, framealpha=0.5)
 fig.tight_layout()

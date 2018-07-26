@@ -32,6 +32,10 @@ PROGRAM main
     !!!!!!!!!!!!!!!!!
     real(rp), dimension(1000) :: rr, Ck, AW1, BW2
     real(rp), dimension(2) :: grad, point, centre1, centre2, x, y, somme
+    real(rp), dimension(:, :), allocatable :: normales
+    real(rp), dimension(:), allocatable :: div_normales
+    real(rp) :: angle, prod, rtemp
+    integer :: k
 
 
 
@@ -154,6 +158,47 @@ PROGRAM main
     ! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     ! }}}
 
+    ! normales exactes {{{
+    allocate(normales(p%n, 2), div_normales(p%n))
+    do i = 1, p%n
+        if (p%x(i, 1) == 0.0_rp) then
+            if (p%x(i, 2) > 0.0_rp) then
+                angle = pi / 2.0_rp
+            else
+                angle = -pi / 2.0_rp
+            endif
+        else
+            angle = atan(p%x(i, 2) / p%x(i, 1))
+        endif
+
+        if (p%x(i, 1) >= 0.0_rp) then
+            normales(i, :) = (/ -cos(angle), -sin(angle) /)
+        else
+            normales(i, :) = (/ cos(angle), sin(angle) /)
+        endif
+    end do
+    open(unit = 10, file = '../sorties/normales.dat')
+        do i = 1, p%n
+            write (10, *) normales(i, :)
+        end do
+    close(10)
+
+    do i = 1, p%n
+        div_normales(i) = 0.0_rp
+        do k = 1, p%n
+            call prodScal(normales(k, :) - normales(i, :), p%dWij(i, k, :), prod)
+            div_normales(i) = div_normales(i) + p%w(k) * prod
+        end do
+    end do
+
+    do i = 1, p%n
+        if (fnorme2(p%x(i, :)) < rayon - p%R) then
+            print *, 1.0_rp / fnorme2(p%x(i, :)), -div_normales(i)
+        else
+            print *, "                                            ", 1.0_rp / fnorme2(p%x(i, :)), -div_normales(i)
+        endif
+    end do
+    ! }}}
 
 
 
@@ -163,6 +208,6 @@ PROGRAM main
     write (*, '("### temps d''éxecution :",1F6.2)'), t_end - t_start
     call rm_Particules(p)
     deallocate(bornes, centre)
-    call system('../pyplot/main.py')
+    ! call system('../pyplot/main.py')
 
 END PROGRAM main
